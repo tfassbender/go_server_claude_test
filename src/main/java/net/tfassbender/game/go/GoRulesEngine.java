@@ -40,8 +40,9 @@ public class GoRulesEngine {
     /**
      * Validate and execute a move on the board
      * Returns captured stones if move is valid
+     * @param koBlockedHash The board state that is blocked by Ko rule (state before opponent's last move)
      */
-    public MoveResult validateAndExecuteMove(Board board, Position position, Stone stone, String previousBoardHash) {
+    public MoveResult validateAndExecuteMove(Board board, Position position, Stone stone, String koBlockedHash) {
         // Check if position is valid
         if (!board.isValidPosition(position)) {
             return MoveResult.error("Position is outside the board");
@@ -69,10 +70,10 @@ public class GoRulesEngine {
             return MoveResult.error("Suicide move not allowed");
         }
 
-        // Check Ko rule (board state cannot repeat immediately)
-        if (previousBoardHash != null && !previousBoardHash.isEmpty()) {
+        // Check Ko rule (cannot recreate the board state from before opponent's last move)
+        if (koBlockedHash != null && !koBlockedHash.isEmpty()) {
             String newBoardHash = simBoard.getBoardHash();
-            if (newBoardHash.equals(previousBoardHash)) {
+            if (newBoardHash.equals(koBlockedHash)) {
                 return MoveResult.error("Ko rule violation");
             }
         }
@@ -115,18 +116,25 @@ public class GoRulesEngine {
      */
     public Board reconstructBoard(int boardSize, List<MoveData> moves) {
         Board board = new Board(boardSize);
-        String previousHash = null;
+        String koBlockedHash = null;
 
         for (MoveData move : moves) {
             if ("place".equals(move.action)) {
+                // Store hash before the move (this becomes the Ko-blocked state)
+                String hashBeforeMove = board.getBoardHash();
+
                 Stone stone = Stone.fromString(move.player);
-                MoveResult result = validateAndExecuteMove(board, move.position, stone, previousHash);
+                MoveResult result = validateAndExecuteMove(board, move.position, stone, koBlockedHash);
 
                 if (!result.success) {
                     throw new IllegalStateException("Invalid move in history: " + result.error);
                 }
 
-                previousHash = board.getBoardHash();
+                // Update Ko blocked hash to the state before this move
+                koBlockedHash = hashBeforeMove;
+            } else if ("pass".equals(move.action)) {
+                // Passing releases the Ko restriction
+                koBlockedHash = null;
             }
         }
 

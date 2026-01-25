@@ -165,10 +165,13 @@ public class GameService {
         // Reconstruct board from moves
         Board board = reconstructBoard(game);
 
+        // Get current board hash BEFORE the move (this becomes the Ko-blocked state for opponent)
+        String boardHashBeforeMove = board.getBoardHash();
+
         // Validate and execute move
         Stone stone = Stone.fromString(game.currentTurn);
         GoRulesEngine.MoveResult result = rulesEngine.validateAndExecuteMove(
-                board, position, stone, game.previousBoardHash
+                board, position, stone, game.koBlockedHash
         );
 
         if (!result.success) {
@@ -180,8 +183,8 @@ public class GameService {
         move.capturedStones = result.capturedStones;
         game.addMove(move);
 
-        // Update board hash for Ko detection
-        game.previousBoardHash = board.getBoardHash();
+        // Update Ko blocked hash - the opponent cannot recreate the board state from before this move
+        game.koBlockedHash = boardHashBeforeMove;
 
         // Switch turn
         game.switchTurn();
@@ -217,6 +220,9 @@ public class GameService {
         // Add pass move
         Move move = new Move(game.currentTurn, "pass");
         game.addMove(move);
+
+        // Clear Ko restriction - passing releases the Ko threat
+        game.koBlockedHash = null;
 
         // Switch turn if game is still active
         if ("active".equals(game.status)) {

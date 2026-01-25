@@ -18,7 +18,7 @@ public class Game {
     public List<Move> moves;
     public int passes;              // Consecutive passes (game ends after 2)
     public GameResult result;
-    public String previousBoardHash; // For Ko detection
+    public String koBlockedHash; // Board state that is blocked by Ko rule (state before last move)
 
     public Game() {
         this.id = UUID.randomUUID().toString();
