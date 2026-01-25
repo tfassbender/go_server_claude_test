@@ -10,6 +10,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,7 +23,24 @@ public class UserResource {
     UserService userService;
 
     @Inject
+    UserRepository userRepository;
+
+    @Inject
     JsonWebToken jwt;
+
+    /**
+     * Search users by username
+     */
+    @GET
+    @Path("/search")
+    @RolesAllowed("User")
+    public Response searchUsers(@QueryParam("q") @DefaultValue("") String query) {
+        String currentUser = jwt.getName();
+        List<String> usernames = userRepository.findAllUsernames(query).stream()
+                .filter(username -> !username.equals(currentUser)) // Exclude current user
+                .toList();
+        return Response.ok(Map.of("users", usernames)).build();
+    }
 
     /**
      * Get current user's profile

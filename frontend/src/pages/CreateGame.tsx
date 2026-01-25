@@ -1,18 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gameService from '../services/gameService';
+import userService from '../services/userService';
 import './CreateGame.css';
 
 const CreateGame = () => {
   const navigate = useNavigate();
   const [opponentUsername, setOpponentUsername] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [users, setUsers] = useState<string[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [boardSize, setBoardSize] = useState<9 | 13 | 19>(19);
   const [requestedColor, setRequestedColor] = useState<'black' | 'white' | 'random'>('black');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load users on mount
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const allUsers = await userService.searchUsers();
+        setUsers(allUsers);
+        setFilteredUsers(allUsers);
+      } catch (err) {
+        console.error('Failed to load users:', err);
+      }
+    };
+    loadUsers();
+  }, []);
+
+  // Filter users when search query changes
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = users.filter(user => user.toLowerCase().includes(query));
+    setFilteredUsers(filtered);
+  }, [searchQuery, users]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectUser = (username: string) => {
+    setOpponentUsername(username);
+    setSearchQuery(username);
+    setShowDropdown(false);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setOpponentUsername(''); // Clear selection when typing
+    setShowDropdown(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!opponentUsername) {
+      setError('Please select an opponent from the list');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -38,18 +95,41 @@ const CreateGame = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="input-group">
-              <label htmlFor="opponent">Opponent Username</label>
-              <input
-                id="opponent"
-                type="text"
-                value={opponentUsername}
-                onChange={(e) => setOpponentUsername(e.target.value)}
-                required
-                minLength={3}
-                maxLength={20}
-                disabled={loading}
-                placeholder="Enter opponent's username"
-              />
+              <label htmlFor="opponent">Opponent</label>
+              <div className="user-search-dropdown" ref={dropdownRef}>
+                <input
+                  id="opponent"
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={() => setShowDropdown(true)}
+                  required
+                  disabled={loading}
+                  placeholder="Search for opponent..."
+                  autoComplete="off"
+                />
+                {showDropdown && filteredUsers.length > 0 && (
+                  <ul className="dropdown-list">
+                    {filteredUsers.map(user => (
+                      <li
+                        key={user}
+                        onClick={() => handleSelectUser(user)}
+                        className={user === opponentUsername ? 'selected' : ''}
+                      >
+                        {user}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {showDropdown && searchQuery && filteredUsers.length === 0 && (
+                  <div className="dropdown-empty">No users found</div>
+                )}
+              </div>
+              {opponentUsername && (
+                <div className="selected-opponent">
+                  Selected: <strong>{opponentUsername}</strong>
+                </div>
+              )}
             </div>
 
             <div className="input-group">

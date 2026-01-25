@@ -9,7 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 public class UserRepository {
@@ -77,5 +80,32 @@ public class UserRepository {
         Path userFile = Paths.get(dataDirectory, "users", username + ".json");
         Files.deleteIfExists(userFile);
         LOG.info("Deleted user: {}", username);
+    }
+
+    /**
+     * Find all usernames, optionally filtered by search query
+     */
+    public List<String> findAllUsernames(String searchQuery) {
+        Path usersDir = Paths.get(dataDirectory, "users");
+
+        if (!Files.exists(usersDir)) {
+            return Collections.emptyList();
+        }
+
+        try (Stream<Path> files = Files.list(usersDir)) {
+            String query = searchQuery != null ? searchQuery.toLowerCase() : "";
+            return files
+                    .filter(path -> path.toString().endsWith(".json"))
+                    .map(path -> {
+                        String filename = path.getFileName().toString();
+                        return filename.substring(0, filename.length() - 5); // Remove .json
+                    })
+                    .filter(username -> query.isEmpty() || username.toLowerCase().contains(query))
+                    .sorted()
+                    .toList();
+        } catch (IOException e) {
+            LOG.error("Error listing users", e);
+            return Collections.emptyList();
+        }
     }
 }
