@@ -47,6 +47,8 @@ const GameLobby = () => {
     try {
       await gameService.acceptGame(gameId);
       await loadGames(); // Reload games
+      setActiveTab('active'); // Switch to Active Games tab
+      setSearchParams({}); // Clear URL params
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to accept game');
     }

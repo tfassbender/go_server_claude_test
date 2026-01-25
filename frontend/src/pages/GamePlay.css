@@ -28,10 +28,6 @@
   .gameplay-container {
     grid-template-columns: 1fr;
   }
-
-  .sidebar {
-    order: -1;
-  }
 }
 
 .board-section {

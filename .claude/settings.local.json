@@ -42,7 +42,8 @@
       "Bash(dir:*)",
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_hover"
+      "mcp__playwright__browser_hover",
+      "Bash(npm run build:*)"
     ]
   }
 }
