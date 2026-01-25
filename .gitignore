@@ -52,5 +52,8 @@ Thumbs.db
 # Quarkus
 target/
 
+# mcp
+.playwright-mcp/
+
 # Some stupid windows file that I cannot delete
 NUL
