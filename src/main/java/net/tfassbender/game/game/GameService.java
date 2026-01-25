@@ -68,6 +68,7 @@ public class GameService {
 
         // Create game
         Game game = new Game(boardSize, blackPlayer, whitePlayer);
+        game.createdBy = creatorUsername;
         gameRepository.save(game);
 
         LOG.info("Created game {}: {} (black) vs {} (white)", game.id, blackPlayer, whitePlayer);
@@ -95,8 +96,8 @@ public class GameService {
             throw new IllegalArgumentException("Game is not pending");
         }
 
-        // Validate user is not the black player (who created the game)
-        if (username.equals(game.blackPlayer)) {
+        // Validate user is not the creator
+        if (username.equals(game.createdBy)) {
             throw new IllegalArgumentException("Cannot accept your own game invitation");
         }
 

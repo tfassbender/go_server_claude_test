@@ -89,6 +89,7 @@ public class GameResource {
                 gameInfo.put("lastMoveAt", game.lastMoveAt);
                 gameInfo.put("status", game.status);
                 gameInfo.put("boardSize", game.boardSize);
+                gameInfo.put("isCreator", username.equals(game.createdBy));
                 return gameInfo;
             }).collect(Collectors.toList());
 

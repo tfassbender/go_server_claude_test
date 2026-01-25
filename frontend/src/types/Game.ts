@@ -42,4 +42,5 @@ export interface GameListItem {
   lastMoveAt: string;
   status: 'pending' | 'active' | 'completed';
   boardSize: number;
+  isCreator: boolean;
 }

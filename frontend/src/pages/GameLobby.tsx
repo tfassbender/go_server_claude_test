@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import gameService from '../services/gameService';
 import { GameListItem } from '../types/Game';
 import GameList from '../components/GameList/GameList';
 import './GameLobby.css';
 
 const GameLobby = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeGames, setActiveGames] = useState<GameListItem[]>([]);
   const [pendingGames, setPendingGames] = useState<GameListItem[]>([]);
   const [completedGames, setCompletedGames] = useState<GameListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'completed'>('active');
+
+  // Get initial tab from URL or default to 'active'
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam === 'pending' || tabParam === 'completed') ? tabParam : 'active';
+  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'completed'>(initialTab);
 
   const loadGames = async () => {
     try {
@@ -80,19 +86,19 @@ const GameLobby = () => {
       <div className="tabs">
         <button
           className={`tab ${activeTab === 'active' ? 'active' : ''}`}
-          onClick={() => setActiveTab('active')}
+          onClick={() => { setActiveTab('active'); setSearchParams({}); }}
         >
           Active Games ({activeGames.length})
         </button>
         <button
           className={`tab ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
+          onClick={() => { setActiveTab('pending'); setSearchParams({ tab: 'pending' }); }}
         >
           Pending Invitations ({pendingGames.length})
         </button>
         <button
           className={`tab ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('completed')}
+          onClick={() => { setActiveTab('completed'); setSearchParams({ tab: 'completed' }); }}
         >
           Completed ({completedGames.length})
         </button>

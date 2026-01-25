@@ -10,6 +10,7 @@ public class Game {
     public int boardSize;
     public String blackPlayer;
     public String whitePlayer;
+    public String createdBy;        // Username of the player who created the game
     public String currentTurn;      // "black" or "white"
     public String status;           // "pending", "active", "completed"
     public Instant createdAt;

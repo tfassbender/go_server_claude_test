@@ -74,13 +74,14 @@ const CreateGame = () => {
     setError('');
 
     try {
-      const game = await gameService.createGame({
+      await gameService.createGame({
         opponentUsername,
         boardSize,
         requestedColor
       });
 
-      navigate(`/game/${game.id}`);
+      // Redirect to lobby with pending tab since the game needs to be accepted first
+      navigate('/lobby?tab=pending');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create game');
       setLoading(false);

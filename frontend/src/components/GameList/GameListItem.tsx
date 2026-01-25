@@ -49,11 +49,16 @@ const GameListItem = ({ game, onAccept, onDecline }: GameListItemProps) => {
       <div className="game-actions">
         {isPending && onAccept && onDecline ? (
           <>
-            <button onClick={() => onAccept(game.id)} className="button button-primary">
+            <button
+              onClick={() => onAccept(game.id)}
+              className="button button-primary"
+              disabled={game.isCreator}
+              title={game.isCreator ? "You created this game - waiting for opponent to accept" : "Accept this game invitation"}
+            >
               Accept
             </button>
             <button onClick={() => onDecline(game.id)} className="button button-danger">
-              Decline
+              {game.isCreator ? 'Cancel' : 'Decline'}
             </button>
           </>
         ) : (
