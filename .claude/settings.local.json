@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gradle wrapper:*)",
+      "Bash(export JAVA_HOME=\"/mnt/c/Program Files/Eclipse Adoptium/jdk-21.0.2.13-hotspot\")",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "Bash(java -version:*)",
+      "Bash(./gradlew tasks:*)",
+      "Bash(./gradlew.bat:*)",
+      "Bash(timeout 15 tail:*)",
+      "Bash(curl:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(where npm:*)",
+      "Bash(npm --version)",
+      "Bash(cmd /c \"cd /d D:\\\\intelliJ_workspace\\\\go_server_claude_test\\\\frontend && npm install\")",
+      "Bash(npm.cmd install:*)",
+      "Bash(pushd:*)",
+      "Bash(popd)",
+      "Bash(npm.cmd run dev:*)",
+      "mcp__playwright__browser_navigate",
+      "Bash(./gradlew quarkusDev:*)",
+      "Bash(timeout /t 10)",
+      "Bash(gradlew.bat quarkusDev:*)",
+      "Bash(cmd /c \"gradlew.bat quarkusDev\")",
+      "Bash(powershell -Command \"Start-Process -NoNewWindow -FilePath ''./gradlew.bat'' -ArgumentList ''quarkusDev''\")",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"gradlew.bat quarkusDev > quarkus.log 2>&1\")",
+      "WebSearch",
+      "Bash(ping:*)"
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+plugins {
+    id 'java'
+    id 'io.quarkus' version '3.6.4'
+}
+
+group 'com.go.game'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Quarkus Core
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:3.6.4")
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-resteasy-reactive'
+    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+
+    // JWT Authentication
+    implementation 'io.quarkus:quarkus-smallrye-jwt'
+    implementation 'io.quarkus:quarkus-smallrye-jwt-build'
+
+    // BCrypt for password hashing
+    implementation 'at.favre.lib:bcrypt:0.10.2'
+
+    // JSON Processing
+    implementation 'io.quarkus:quarkus-jackson'
+
+    // Testing
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+// Frontend build tasks
+task npmInstall(type: Exec) {
+    description = 'Install frontend dependencies'
+    workingDir 'frontend'
+    commandLine 'npm.cmd', 'install'
+
+    inputs.file('frontend/package.json')
+    inputs.file('frontend/package-lock.json')
+    outputs.dir('frontend/node_modules')
+}
+
+task buildFrontend(type: Exec) {
+    description = 'Build the React frontend'
+    dependsOn npmInstall
+    workingDir 'frontend'
+    commandLine 'npm.cmd', 'run', 'build'
+
+    inputs.dir('frontend/src')
+    inputs.file('frontend/index.html')
+    inputs.file('frontend/vite.config.ts')
+    outputs.dir('src/main/resources/META-INF/resources')
+}
+
+// Make processResources depend on frontend build
+processResources.dependsOn buildFrontend

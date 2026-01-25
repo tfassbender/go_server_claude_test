@@ -1,0 +1,74 @@
+package net.tfassbender.game.user;
+
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@Path("/api/users")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class UserResource {
+
+    @Inject
+    UserService userService;
+
+    @Inject
+    JsonWebToken jwt;
+
+    /**
+     * Get current user's profile
+     */
+    @GET
+    @Path("/me")
+    @RolesAllowed("User")
+    public Response getCurrentUser(@Context SecurityContext securityContext) {
+        String username = jwt.getName();
+        Optional<User> userOpt = userService.getUser(username);
+
+        if (userOpt.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "User not found"))
+                    .build();
+        }
+
+        User user = userOpt.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.username);
+        response.put("statistics", user.statistics);
+        response.put("createdAt", user.createdAt);
+
+        return Response.ok(response).build();
+    }
+
+    /**
+     * Get another user's profile (public info only)
+     */
+    @GET
+    @Path("/{username}")
+    @RolesAllowed("User")
+    public Response getUserProfile(@PathParam("username") String username) {
+        Optional<User> userOpt = userService.getUser(username);
+
+        if (userOpt.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "User not found"))
+                    .build();
+        }
+
+        User user = userOpt.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.username);
+        response.put("statistics", user.statistics);
+
+        return Response.ok(response).build();
+    }
+}

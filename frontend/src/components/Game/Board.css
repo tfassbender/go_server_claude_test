@@ -1,0 +1,37 @@
+.board-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.go-board {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.intersection {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.intersection:hover {
+  fill: rgba(0, 0, 0, 0.1);
+}
+
+.intersection.disabled {
+  cursor: not-allowed;
+}
+
+.intersection.disabled:hover {
+  fill: transparent;
+}
+
+.stone {
+  pointer-events: none;
+}
+
+.last-move-marker {
+  pointer-events: none;
+}

@@ -1,0 +1,16 @@
+.auth-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-form .button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.auth-form small {
+  color: #666;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
