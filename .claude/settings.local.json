@@ -34,7 +34,11 @@
       "Bash(taskkill:*)",
       "Bash(cmd /c \"gradlew.bat quarkusDev > quarkus.log 2>&1\")",
       "WebSearch",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:smallrye.io)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_close"
     ]
   }
 }
