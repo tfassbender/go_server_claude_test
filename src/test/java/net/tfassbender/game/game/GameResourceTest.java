@@ -203,6 +203,34 @@ public class GameResourceTest {
     }
 
     @Test
+    void testCreateGameInvalidColor() {
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + player1Token)
+            .body("{\"boardSize\": 9, \"opponentUsername\": \"" + player2Username + "\", \"requestedColor\": \"blue\"}")
+        .when()
+            .post("/api/games")
+        .then()
+            .statusCode(400)
+            .body("error", equalTo("Invalid color: must be 'black', 'white', or 'random'"));
+    }
+
+    @Test
+    void testCreateGameWithUppercaseColor() {
+        // Test that color comparison is case-insensitive
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + player1Token)
+            .body("{\"boardSize\": 9, \"opponentUsername\": \"" + player2Username + "\", \"requestedColor\": \"WHITE\"}")
+        .when()
+            .post("/api/games")
+        .then()
+            .statusCode(201)
+            .body("blackPlayer", equalTo(player2Username))
+            .body("whitePlayer", equalTo(player1Username));
+    }
+
+    @Test
     void testCreateGameWithoutAuth() {
         given()
             .contentType(ContentType.JSON)

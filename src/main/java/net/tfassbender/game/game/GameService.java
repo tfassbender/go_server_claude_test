@@ -50,9 +50,9 @@ public class GameService {
             throw new IllegalArgumentException("Cannot create game with yourself");
         }
 
-        // Determine colors
+        // Determine colors (case-insensitive comparison)
         String blackPlayer, whitePlayer;
-        if ("random".equals(requestedColor)) {
+        if ("random".equalsIgnoreCase(requestedColor)) {
             // Random assignment
             if (new Random().nextBoolean()) {
                 blackPlayer = creatorUsername;
@@ -61,13 +61,14 @@ public class GameService {
                 blackPlayer = opponentUsername;
                 whitePlayer = creatorUsername;
             }
-        } else if ("white".equals(requestedColor)) {
+        } else if ("white".equalsIgnoreCase(requestedColor)) {
             blackPlayer = opponentUsername;
             whitePlayer = creatorUsername;
-        } else {
-            // Default: creator plays black
+        } else if ("black".equalsIgnoreCase(requestedColor)) {
             blackPlayer = creatorUsername;
             whitePlayer = opponentUsername;
+        } else {
+            throw new IllegalArgumentException("Invalid color: must be 'black', 'white', or 'random'");
         }
 
         // Create game
