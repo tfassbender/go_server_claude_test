@@ -39,3 +39,17 @@
 .territory-marker {
   pointer-events: none;
 }
+
+/* Fix mode styles */
+.board-container.fix-mode .stone.fix-mode-stone {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.stone-group-clickable {
+  cursor: pointer;
+}
+
+.dead-stone-marker {
+  pointer-events: none;
+}

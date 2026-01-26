@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { Game, GameListItem } from '../types/Game';
+import { Game, GameListItem, GameResult } from '../types/Game';
 import { Position } from '../types/Position';
 
 export interface CreateGameRequest {
@@ -59,6 +59,14 @@ const gameService = {
 
   async resign(gameId: string): Promise<void> {
     await apiClient.post(`/games/${gameId}/resign`);
+  },
+
+  async recalculateScore(gameId: string, manuallyMarkedDeadStones: Position[]): Promise<GameResult> {
+    const response = await apiClient.post<GameResult>(
+      `/games/${gameId}/recalculate-score`,
+      { manuallyMarkedDeadStones }
+    );
+    return response.data;
   }
 };
 

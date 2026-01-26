@@ -358,6 +358,65 @@ public class GameService {
     }
 
     /**
+     * Recalculate the score of a completed game with manually marked dead stones.
+     */
+    public GameResult recalculateScore(String gameId, String username, List<Position> manuallyMarkedDeadStones) throws IOException {
+        Optional<Game> gameOpt = gameRepository.findById(gameId);
+        if (gameOpt.isEmpty()) {
+            throw new IllegalArgumentException("Game not found");
+        }
+
+        Game game = gameOpt.get();
+
+        // Validate game is completed
+        if (!"completed".equals(game.status)) {
+            throw new IllegalArgumentException("Game is not completed");
+        }
+
+        // Validate user is a player
+        if (!game.isPlayer(username)) {
+            throw new IllegalArgumentException("You are not a player in this game");
+        }
+
+        // Reconstruct board from moves
+        Board board = reconstructBoard(game);
+
+        // Validate all marked positions contain actual stones
+        for (Position pos : manuallyMarkedDeadStones) {
+            if (board.getStone(pos) == null) {
+                throw new IllegalArgumentException("Position " + pos + " does not contain a stone");
+            }
+        }
+
+        // Calculate score with manual dead stones
+        ScoringEngine.ScoringResult scoringResult = scoringEngine.calculateScoreWithManualDeadStones(
+                board, game.moves, ScoringEngine.DEFAULT_KOMI, manuallyMarkedDeadStones
+        );
+
+        // Update game result
+        game.result = new GameResult();
+        game.result.winner = scoringResult.winner;
+        game.result.method = "score";
+        game.result.score = new GameResult.Score(scoringResult.blackScore, scoringResult.whiteScore);
+        game.result.territory = new GameResult.Territory(
+                scoringResult.blackTerritoryPositions,
+                scoringResult.whiteTerritoryPositions
+        );
+        game.result.captures = new GameResult.Captures(
+                scoringResult.blackPrisoners,
+                scoringResult.whitePrisoners
+        );
+
+        // Save game
+        gameRepository.save(game);
+
+        LOG.info("Score recalculated for game {} by {}: Black={}, White={}, Winner={}",
+                gameId, username, scoringResult.blackScore, scoringResult.whiteScore, scoringResult.winner);
+
+        return game.result;
+    }
+
+    /**
      * Response object for move operations
      */
     public static class MoveResponse {

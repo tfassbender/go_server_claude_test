@@ -14,9 +14,22 @@ interface BoardProps {
   disabled?: boolean;
   lastMove?: Position;
   territory?: TerritoryMarkers;
+  fixMode?: boolean;
+  markedDeadStones?: Position[];
+  onStoneClick?: (position: Position) => void;
 }
 
-const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove, territory }: BoardProps) => {
+const Board = ({
+  size,
+  stones,
+  onIntersectionClick,
+  disabled = false,
+  lastMove,
+  territory,
+  fixMode = false,
+  markedDeadStones = [],
+  onStoneClick
+}: BoardProps) => {
   const cellSize = 40;
   const margin = 30;
   const boardSize = cellSize * (size - 1) + 2 * margin;
@@ -52,9 +65,27 @@ const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove, 
   };
 
   const handleClick = (x: number, y: number) => {
+    if (fixMode && onStoneClick) {
+      // In fix mode, clicking a stone toggles its dead status
+      const stone = stoneMap.get(`${x},${y}`);
+      if (stone) {
+        onStoneClick({ x, y });
+      }
+      return;
+    }
     if (!disabled && onIntersectionClick) {
       onIntersectionClick({ x, y });
     }
+  };
+
+  // Create a set for quick dead stone lookup
+  const deadStoneSet = new Set<string>();
+  markedDeadStones.forEach(pos => {
+    deadStoneSet.add(`${pos.x},${pos.y}`);
+  });
+
+  const isMarkedDead = (x: number, y: number): boolean => {
+    return deadStoneSet.has(`${x},${y}`);
   };
 
   // Create a map for quick stone lookup
@@ -80,7 +111,7 @@ const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove, 
   };
 
   return (
-    <div className="board-container">
+    <div className={`board-container${fixMode ? ' fix-mode' : ''}`}>
       <svg
         width={boardSize}
         height={boardSize}
@@ -179,26 +210,52 @@ const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove, 
             const stone = stoneMap.get(`${x},${y}`);
             if (!stone) return null;
 
+            const cx = getCoordinate(x);
+            const cy = getCoordinate(y);
+            const isDead = isMarkedDead(x, y);
+
             return (
-              <g key={`stone-${x}-${y}`}>
+              <g key={`stone-${x}-${y}`} className={fixMode ? 'stone-group-clickable' : ''}>
                 <circle
-                  cx={getCoordinate(x)}
-                  cy={getCoordinate(y)}
+                  cx={cx}
+                  cy={cy}
                   r={cellSize / 2 - 2}
                   fill={stone === 'black' ? '#000' : '#fff'}
                   stroke={stone === 'white' ? '#000' : 'none'}
                   strokeWidth="1"
-                  className="stone"
+                  className={`stone${fixMode ? ' fix-mode-stone' : ''}`}
+                  onClick={fixMode ? () => handleClick(x, y) : undefined}
                 />
                 {/* Last move marker */}
                 {isLastMove(x, y) && (
                   <circle
-                    cx={getCoordinate(x)}
-                    cy={getCoordinate(y)}
+                    cx={cx}
+                    cy={cy}
                     r="6"
                     fill={stone === 'black' ? '#fff' : '#000'}
                     className="last-move-marker"
                   />
+                )}
+                {/* Dead stone marker (X) */}
+                {fixMode && isDead && (
+                  <g className="dead-stone-marker">
+                    <line
+                      x1={cx - 8}
+                      y1={cy - 8}
+                      x2={cx + 8}
+                      y2={cy + 8}
+                      stroke="red"
+                      strokeWidth="3"
+                    />
+                    <line
+                      x1={cx + 8}
+                      y1={cy - 8}
+                      x2={cx - 8}
+                      y2={cy + 8}
+                      stroke="red"
+                      strokeWidth="3"
+                    />
+                  </g>
                 )}
               </g>
             );

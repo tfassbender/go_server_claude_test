@@ -480,4 +480,74 @@ public class ScoringEngine {
     public ScoringResult calculateScore(Board board, List<Move> moves) {
         return calculateScore(board, moves, DEFAULT_KOMI);
     }
+
+    /**
+     * Calculate the final score using manually marked dead stones instead of auto-detection.
+     */
+    public ScoringResult calculateScoreWithManualDeadStones(
+            Board board,
+            List<Move> moves,
+            double komi,
+            List<Position> manuallyMarkedDeadStones
+    ) {
+        // Separate marked positions into black/white dead stones based on stone color at each position
+        Set<Position> blackDeadStones = new HashSet<>();
+        Set<Position> whiteDeadStones = new HashSet<>();
+
+        for (Position pos : manuallyMarkedDeadStones) {
+            Stone stone = board.getStone(pos);
+            if (stone == Stone.BLACK) {
+                blackDeadStones.add(pos);
+            } else if (stone == Stone.WHITE) {
+                whiteDeadStones.add(pos);
+            }
+            // Ignore positions without stones (shouldn't happen if validated)
+        }
+
+        DeadStones deadStones = new DeadStones(blackDeadStones, whiteDeadStones);
+
+        // Calculate territories, treating dead stones as empty
+        List<TerritoryRegion> territories = calculateTerritoriesIgnoringDeadStones(board, deadStones);
+
+        // Sum up territory for each player and collect positions
+        int blackTerritory = 0;
+        int whiteTerritory = 0;
+        List<Position> blackTerritoryPositions = new ArrayList<>();
+        List<Position> whiteTerritoryPositions = new ArrayList<>();
+
+        for (TerritoryRegion territory : territories) {
+            if (territory.owner == Stone.BLACK) {
+                blackTerritory += territory.size();
+                blackTerritoryPositions.addAll(territory.positions);
+            } else if (territory.owner == Stone.WHITE) {
+                whiteTerritory += territory.size();
+                whiteTerritoryPositions.addAll(territory.positions);
+            }
+        }
+
+        // Count prisoners from move history
+        int[] prisoners = countPrisoners(moves);
+        int blackPrisoners = prisoners[0];
+        int whitePrisoners = prisoners[1];
+
+        // Count dead stones
+        int blackDeadCount = blackDeadStones.size();
+        int whiteDeadCount = whiteDeadStones.size();
+
+        LOG.info("Manual scoring: Black territory={}, White territory={}, " +
+                "Black prisoners={}, White prisoners={}, " +
+                "Black dead={}, White dead={}, Komi={}",
+                blackTerritory, whiteTerritory,
+                blackPrisoners, whitePrisoners,
+                blackDeadCount, whiteDeadCount, komi);
+
+        return new ScoringResult(
+                blackTerritory, whiteTerritory,
+                blackPrisoners, whitePrisoners,
+                blackDeadCount, whiteDeadCount,
+                komi,
+                blackTerritoryPositions,
+                whiteTerritoryPositions
+        );
+    }
 }

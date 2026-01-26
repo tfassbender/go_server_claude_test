@@ -1,0 +1,41 @@
+.fix-territory-controls {
+  margin-top: 1rem;
+}
+
+.fix-territory-button {
+  width: 100%;
+}
+
+.fix-mode-active {
+  padding: 1rem;
+  background-color: #f0f4ff;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+}
+
+.fix-instructions {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.marked-count {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.fix-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fix-buttons .button {
+  width: 100%;
+}
+
+.fix-error {
+  margin-bottom: 1rem;
+}

@@ -8,6 +8,7 @@ import { Position } from '../types/Position';
 import Board from '../components/Game/Board';
 import GameInfo from '../components/Game/GameInfo';
 import GameControls from '../components/Game/GameControls';
+import FixTerritoryControls from '../components/Game/FixTerritoryControls';
 import './GamePlay.css';
 
 const GamePlay = () => {
@@ -18,6 +19,10 @@ const GamePlay = () => {
   const [error, setError] = useState('');
   const [moveError, setMoveError] = useState('');
   const [sseConnected, setSseConnected] = useState(false);
+  const [fixMode, setFixMode] = useState(false);
+  const [markedDeadStones, setMarkedDeadStones] = useState<Position[]>([]);
+  const [recalculateLoading, setRecalculateLoading] = useState(false);
+  const [recalculateError, setRecalculateError] = useState('');
   const currentUsername = authService.getCurrentUsername();
 
   const loadGame = async () => {
@@ -111,6 +116,44 @@ const GamePlay = () => {
     }
   };
 
+  const toggleFixMode = () => {
+    setFixMode(!fixMode);
+    setMarkedDeadStones([]);
+    setRecalculateError('');
+  };
+
+  const toggleDeadStone = (position: Position) => {
+    setMarkedDeadStones(prev => {
+      const exists = prev.some(p => p.x === position.x && p.y === position.y);
+      if (exists) {
+        return prev.filter(p => !(p.x === position.x && p.y === position.y));
+      } else {
+        return [...prev, position];
+      }
+    });
+  };
+
+  const handleRecalculate = async () => {
+    if (!gameId) return;
+
+    try {
+      setRecalculateLoading(true);
+      setRecalculateError('');
+      await gameService.recalculateScore(gameId, markedDeadStones);
+      await loadGame();
+      setFixMode(false);
+      setMarkedDeadStones([]);
+    } catch (err: any) {
+      setRecalculateError(err.response?.data?.error || 'Failed to recalculate score');
+    } finally {
+      setRecalculateLoading(false);
+    }
+  };
+
+  const clearMarkedStones = () => {
+    setMarkedDeadStones([]);
+  };
+
   if (loading) {
     return (
       <div className="container">
@@ -155,9 +198,12 @@ const GamePlay = () => {
             size={game.boardSize}
             stones={game.boardState?.stones || []}
             onIntersectionClick={handleIntersectionClick}
-            disabled={!isYourTurn}
+            disabled={!isYourTurn || fixMode}
             lastMove={lastMove}
-            territory={game.status === 'completed' && game.result?.territory ? game.result.territory : undefined}
+            territory={game.status === 'completed' && game.result?.territory && !fixMode ? game.result.territory : undefined}
+            fixMode={fixMode}
+            markedDeadStones={markedDeadStones}
+            onStoneClick={toggleDeadStone}
           />
           {moveError && <div className="error move-error">{moveError}</div>}
         </div>
@@ -169,6 +215,17 @@ const GamePlay = () => {
               onPass={handlePass}
               onResign={handleResign}
               disabled={!isYourTurn}
+            />
+          )}
+          {game.status === 'completed' && game.result?.method === 'score' && (
+            <FixTerritoryControls
+              fixMode={fixMode}
+              markedCount={markedDeadStones.length}
+              onToggleFixMode={toggleFixMode}
+              onRecalculate={handleRecalculate}
+              onClear={clearMarkedStones}
+              loading={recalculateLoading}
+              error={recalculateError}
             />
           )}
         </div>

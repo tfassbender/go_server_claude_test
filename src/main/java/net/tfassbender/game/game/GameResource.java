@@ -358,6 +358,45 @@ public class GameResource {
         }
     }
 
+    /**
+     * Recalculate score with manually marked dead stones
+     */
+    @POST
+    @Path("/{gameId}/recalculate-score")
+    public Response recalculateScore(@PathParam("gameId") String gameId, RecalculateScoreRequest request) {
+        try {
+            String username = jwt.getName();
+
+            if (request.manuallyMarkedDeadStones == null) {
+                request.manuallyMarkedDeadStones = new ArrayList<>();
+            }
+
+            GameResult result = gameService.recalculateScore(gameId, username, request.manuallyMarkedDeadStones);
+
+            // Broadcast scoreUpdate event to SSE clients
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("winner", result.winner);
+            eventData.put("method", result.method);
+            eventData.put("score", result.score);
+            eventData.put("territory", result.territory);
+            eventData.put("captures", result.captures);
+            eventService.broadcastEvent(gameId, "scoreUpdate", eventData, sse);
+
+            return Response.ok(result).build();
+
+        } catch (IllegalArgumentException e) {
+            LOG.debug("Recalculate score failed: {}", e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        } catch (Exception e) {
+            LOG.error("Error recalculating score for game {}", gameId, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Failed to recalculate score"))
+                    .build();
+        }
+    }
+
     // Request DTOs
     public static class CreateGameRequest {
         public int boardSize;
@@ -368,5 +407,9 @@ public class GameResource {
     public static class MoveRequest {
         public String action;
         public Position position;
+    }
+
+    public static class RecalculateScoreRequest {
+        public List<Position> manuallyMarkedDeadStones;
     }
 }
