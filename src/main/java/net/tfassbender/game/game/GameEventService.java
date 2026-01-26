@@ -1,6 +1,9 @@
 package net.tfassbender.game.game;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 import org.slf4j.Logger;
@@ -14,6 +17,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class GameEventService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GameEventService.class);
+
+    @Inject
+    ObjectMapper objectMapper;
 
     // Map of gameId -> list of SSE connections
     private final Map<String, CopyOnWriteArrayList<SseEventSink>> connections = new ConcurrentHashMap<>();
@@ -52,12 +58,21 @@ public class GameEventService {
 
         LOG.info("Broadcasting {} event to {} connections for game {}", eventType, sinks.size(), gameId);
 
+        // Serialize data to JSON string
+        String jsonData;
+        try {
+            jsonData = objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error serializing SSE event data to JSON", e);
+            return;
+        }
+
         sinks.forEach(sink -> {
             if (!sink.isClosed()) {
                 try {
                     sink.send(sse.newEventBuilder()
                             .name(eventType)
-                            .data(data)
+                            .data(jsonData)
                             .build());
                 } catch (Exception e) {
                     LOG.error("Error sending SSE event to sink", e);

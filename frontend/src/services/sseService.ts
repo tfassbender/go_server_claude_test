@@ -20,15 +20,16 @@ class SSEService {
       return;
     }
 
-    // Note: EventSource doesn't support custom headers, so we'll pass token as query param
-    // This is a limitation of SSE - in production, consider alternatives
-    const url = `/api/games/${gameId}/events`;
+    // Note: EventSource doesn't support custom headers, so we pass token as query param
+    // The backend SseJwtFilter extracts this and sets the Authorization header
+    const url = `/api/games/${gameId}/events?token=${encodeURIComponent(token)}`;
 
     try {
       const eventSource = new EventSource(url);
 
       eventSource.addEventListener('connected', (e) => {
         console.log('SSE connected:', e.data);
+        onEvent({ type: 'connected', data: e.data });
       });
 
       eventSource.addEventListener('move', (e) => {
@@ -44,9 +45,16 @@ class SSEService {
       });
 
       eventSource.onerror = (error) => {
-        console.error('SSE error:', error);
-        eventSource.close();
-        this.eventSources.delete(gameId);
+        // EventSource has built-in auto-retry for transient errors
+        // Only log the error and let it reconnect automatically
+        // readyState: 0 = CONNECTING, 1 = OPEN, 2 = CLOSED
+        if (eventSource.readyState === EventSource.CLOSED) {
+          console.error('SSE connection permanently closed:', error);
+          this.eventSources.delete(gameId);
+          onEvent({ type: 'disconnected', data: null });
+        } else {
+          console.log('SSE connection error, will auto-retry:', eventSource.readyState);
+        }
       };
 
       this.eventSources.set(gameId, eventSource);

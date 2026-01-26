@@ -2,6 +2,8 @@
 
 A full-stack web application for playing the board game Go (Weiqi/Baduk) with enforced game rules, user management, and real-time updates.
 
+The main purpose of this project is to test the capabilities of Claude Code in generating a complete full-stack application with complex game logic, user authentication, and real-time features.
+
 ## Features
 
 - User registration and authentication with JWT

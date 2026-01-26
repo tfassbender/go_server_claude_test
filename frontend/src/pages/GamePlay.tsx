@@ -46,7 +46,12 @@ const GamePlay = () => {
       return;
     }
 
-    // Reload game on any event
+    if (event.type === 'disconnected') {
+      setSseConnected(false);
+      return;
+    }
+
+    // Reload game on any event (move, pass, gameEnd)
     loadGame();
   }, [gameId]);
 

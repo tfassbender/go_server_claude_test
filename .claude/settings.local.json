@@ -43,7 +43,17 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_hover",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(gradle quarkusDev:*)",
+      "Bash(gradle quarkusBuild:*)",
+      "Bash(powershell -Command \"Start-Process -NoNewWindow -FilePath ''gradle'' -ArgumentList ''quarkusDev''\")",
+      "Bash(tasklist:*)",
+      "Bash(gradle classes:*)",
+      "Bash(gradle clean build:*)",
+      "mcp__playwright__browser_select_option",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_press_key"
     ]
   }
 }
