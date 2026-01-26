@@ -204,6 +204,7 @@ const GamePlay = () => {
             fixMode={fixMode}
             markedDeadStones={markedDeadStones}
             onStoneClick={toggleDeadStone}
+            deadStones={game.status === 'completed' && game.result?.deadStones && !fixMode ? game.result.deadStones : undefined}
           />
           {moveError && <div className="error move-error">{moveError}</div>}
         </div>

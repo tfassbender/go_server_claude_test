@@ -11,6 +11,7 @@ public class GameResult {
     public Score score;
     public Territory territory;
     public Captures captures;
+    public DeadStones deadStones;
 
     public GameResult() {}
 
@@ -55,6 +56,21 @@ public class GameResult {
         public Captures(int black, int white) {
             this.black = black;
             this.white = white;
+        }
+    }
+
+    public static class DeadStones {
+        public List<Position> blackDeadStones;  // Black stones marked as dead
+        public List<Position> whiteDeadStones;  // White stones marked as dead
+
+        public DeadStones() {
+            this.blackDeadStones = new ArrayList<>();
+            this.whiteDeadStones = new ArrayList<>();
+        }
+
+        public DeadStones(List<Position> blackDeadStones, List<Position> whiteDeadStones) {
+            this.blackDeadStones = blackDeadStones;
+            this.whiteDeadStones = whiteDeadStones;
         }
     }
 }

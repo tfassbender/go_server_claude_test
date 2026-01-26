@@ -255,6 +255,10 @@ public class GameService {
                     scoringResult.blackPrisoners,
                     scoringResult.whitePrisoners
             );
+            game.result.deadStones = new GameResult.DeadStones(
+                    scoringResult.blackDeadStonePositions,
+                    scoringResult.whiteDeadStonePositions
+            );
 
             // Update user statistics
             String winnerUsername = "black".equals(scoringResult.winner) ? game.blackPlayer : game.whitePlayer;
@@ -405,6 +409,10 @@ public class GameService {
         game.result.captures = new GameResult.Captures(
                 scoringResult.blackPrisoners,
                 scoringResult.whitePrisoners
+        );
+        game.result.deadStones = new GameResult.DeadStones(
+                scoringResult.blackDeadStonePositions,
+                scoringResult.whiteDeadStonePositions
         );
 
         // Save game

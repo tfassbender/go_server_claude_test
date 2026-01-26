@@ -7,6 +7,11 @@ interface TerritoryMarkers {
   whiteTerritory: Position[];
 }
 
+interface DeadStonesMarkers {
+  blackDeadStones: Position[];
+  whiteDeadStones: Position[];
+}
+
 interface BoardProps {
   size: number;
   stones: StoneOnBoard[];
@@ -17,6 +22,7 @@ interface BoardProps {
   fixMode?: boolean;
   markedDeadStones?: Position[];
   onStoneClick?: (position: Position) => void;
+  deadStones?: DeadStonesMarkers;
 }
 
 const Board = ({
@@ -28,7 +34,8 @@ const Board = ({
   territory,
   fixMode = false,
   markedDeadStones = [],
-  onStoneClick
+  onStoneClick,
+  deadStones
 }: BoardProps) => {
   const cellSize = 40;
   const margin = 30;
@@ -105,6 +112,36 @@ const Board = ({
       whiteTerritorySet.add(`${pos.x},${pos.y}`);
     });
   }
+
+  // Create sets for dead stones (from game result)
+  const blackDeadStoneSet = new Set<string>();
+  const whiteDeadStoneSet = new Set<string>();
+  if (deadStones) {
+    deadStones.blackDeadStones.forEach(pos => {
+      blackDeadStoneSet.add(`${pos.x},${pos.y}`);
+    });
+    deadStones.whiteDeadStones.forEach(pos => {
+      whiteDeadStoneSet.add(`${pos.x},${pos.y}`);
+    });
+  }
+
+  const isDeadStone = (x: number, y: number): boolean => {
+    const key = `${x},${y}`;
+    return blackDeadStoneSet.has(key) || whiteDeadStoneSet.has(key);
+  };
+
+  // Determine cross color based on territory: stones in black territory get black cross, etc.
+  const getDeadStoneMarkerColor = (x: number, y: number): string => {
+    const key = `${x},${y}`;
+    if (blackTerritorySet.has(key)) {
+      return '#000';
+    } else if (whiteTerritorySet.has(key)) {
+      return '#fff';
+    }
+    // Fallback: use opposite of stone color
+    const stone = stoneMap.get(key);
+    return stone === 'black' ? '#fff' : '#000';
+  };
 
   const isLastMove = (x: number, y: number): boolean => {
     return lastMove ? lastMove.x === x && lastMove.y === y : false;
@@ -236,7 +273,7 @@ const Board = ({
                     className="last-move-marker"
                   />
                 )}
-                {/* Dead stone marker (X) */}
+                {/* Dead stone marker (X) - fix mode (red) */}
                 {fixMode && isDead && (
                   <g className="dead-stone-marker">
                     <line
@@ -253,6 +290,27 @@ const Board = ({
                       x2={cx - 8}
                       y2={cy + 8}
                       stroke="red"
+                      strokeWidth="3"
+                    />
+                  </g>
+                )}
+                {/* Dead stone marker (X) - game result (territory-colored) */}
+                {!fixMode && deadStones && isDeadStone(x, y) && (
+                  <g className="dead-stone-marker">
+                    <line
+                      x1={cx - 8}
+                      y1={cy - 8}
+                      x2={cx + 8}
+                      y2={cy + 8}
+                      stroke={getDeadStoneMarkerColor(x, y)}
+                      strokeWidth="3"
+                    />
+                    <line
+                      x1={cx + 8}
+                      y1={cy - 8}
+                      x2={cx - 8}
+                      y2={cy + 8}
+                      stroke={getDeadStoneMarkerColor(x, y)}
                       strokeWidth="3"
                     />
                   </g>

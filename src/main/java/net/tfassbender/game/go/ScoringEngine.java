@@ -66,13 +66,17 @@ public class ScoringEngine {
         public final String winner;
         public final List<Position> blackTerritoryPositions;
         public final List<Position> whiteTerritoryPositions;
+        public final List<Position> blackDeadStonePositions;
+        public final List<Position> whiteDeadStonePositions;
 
         public ScoringResult(int blackTerritory, int whiteTerritory,
                             int blackPrisoners, int whitePrisoners,
                             int blackDeadStones, int whiteDeadStones,
                             double komi,
                             List<Position> blackTerritoryPositions,
-                            List<Position> whiteTerritoryPositions) {
+                            List<Position> whiteTerritoryPositions,
+                            List<Position> blackDeadStonePositions,
+                            List<Position> whiteDeadStonePositions) {
             this.blackTerritory = blackTerritory;
             this.whiteTerritory = whiteTerritory;
             this.blackPrisoners = blackPrisoners;
@@ -82,6 +86,8 @@ public class ScoringEngine {
             this.komi = komi;
             this.blackTerritoryPositions = blackTerritoryPositions;
             this.whiteTerritoryPositions = whiteTerritoryPositions;
+            this.blackDeadStonePositions = blackDeadStonePositions;
+            this.whiteDeadStonePositions = whiteDeadStonePositions;
 
             // Black total = territory + prisoners captured + dead white stones
             this.blackScore = blackTerritory + blackPrisoners + whiteDeadStones;
@@ -470,7 +476,9 @@ public class ScoringEngine {
                 blackDeadCount, whiteDeadCount,
                 komi,
                 blackTerritoryPositions,
-                whiteTerritoryPositions
+                whiteTerritoryPositions,
+                new ArrayList<>(deadStones.blackDeadStones),
+                new ArrayList<>(deadStones.whiteDeadStones)
         );
     }
 
@@ -547,7 +555,9 @@ public class ScoringEngine {
                 blackDeadCount, whiteDeadCount,
                 komi,
                 blackTerritoryPositions,
-                whiteTerritoryPositions
+                whiteTerritoryPositions,
+                new ArrayList<>(blackDeadStones),
+                new ArrayList<>(whiteDeadStones)
         );
     }
 }

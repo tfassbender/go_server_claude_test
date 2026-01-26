@@ -31,6 +31,10 @@ export interface GameResult {
     black: number;
     white: number;
   };
+  deadStones?: {
+    blackDeadStones: Position[];
+    whiteDeadStones: Position[];
+  };
 }
 
 export interface BoardState {
