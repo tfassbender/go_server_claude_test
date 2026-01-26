@@ -96,6 +96,22 @@ const GameInfo = ({ game, currentUsername }: GameInfoProps) => {
                 </div>
               </div>
             )}
+            {game.result.deadStones && (
+              game.result.deadStones.blackDeadStones.length > 0 ||
+              game.result.deadStones.whiteDeadStones.length > 0
+            ) && (
+              <div className="captures-breakdown">
+                <h4>Prisoners (Dead Stones)</h4>
+                <div className="score-row">
+                  <span className="score-label">Black:</span>
+                  <span className="score-value">{game.result.deadStones.whiteDeadStones.length}</span>
+                </div>
+                <div className="score-row">
+                  <span className="score-label">White:</span>
+                  <span className="score-value">{game.result.deadStones.blackDeadStones.length}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

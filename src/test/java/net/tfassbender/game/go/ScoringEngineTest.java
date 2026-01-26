@@ -341,6 +341,54 @@ public class ScoringEngineTest {
     // ===== Dead Stones Tests =====
 
     @Test
+    void testDeadStoneTerritoryAndPrisonerPoints() {
+        // This test verifies that dead stone positions count as territory
+        // Uses the same board setup as testSingleDeadStoneInTerritory
+        // but with explicit assertions for the fixed behavior
+        //
+        //   0 1 2 3 4 5
+        // 0 . . . . B W
+        // 1 . W . . B W   <- Dead white stone at (1,1)
+        // 2 . . . . B W
+        // 3 . . . . B W
+        // 4 B B B B B W
+        // 5 W W W W W W
+        //
+        // Black territory: 4x4 = 16 positions (including dead stone at (1,1))
+        board.setStone(4, 0, Stone.BLACK);
+        board.setStone(4, 1, Stone.BLACK);
+        board.setStone(4, 2, Stone.BLACK);
+        board.setStone(4, 3, Stone.BLACK);
+        board.setStone(0, 4, Stone.BLACK);
+        board.setStone(1, 4, Stone.BLACK);
+        board.setStone(2, 4, Stone.BLACK);
+        board.setStone(3, 4, Stone.BLACK);
+        board.setStone(4, 4, Stone.BLACK);
+        board.setStone(1, 1, Stone.WHITE); // Dead white stone inside black territory
+        // White wall to separate
+        board.setStone(5, 0, Stone.WHITE);
+        board.setStone(5, 1, Stone.WHITE);
+        board.setStone(5, 2, Stone.WHITE);
+        board.setStone(5, 3, Stone.WHITE);
+        board.setStone(5, 4, Stone.WHITE);
+        board.setStone(0, 5, Stone.WHITE);
+        board.setStone(1, 5, Stone.WHITE);
+        board.setStone(2, 5, Stone.WHITE);
+        board.setStone(3, 5, Stone.WHITE);
+        board.setStone(4, 5, Stone.WHITE);
+        board.setStone(5, 5, Stone.WHITE);
+
+        ScoringEngine.ScoringResult result = scoringEngine.calculateScore(board, new ArrayList<>());
+
+        // After fix: Black territory = 16 (4x4 including dead stone position)
+        // Dead white stones = 1
+        // Black score = 16 territory + 1 dead white stone = 17
+        assertEquals(16, result.blackTerritory, "Dead stone position should count as territory");
+        assertEquals(1, result.whiteDeadStones, "Should detect 1 white dead stone");
+        assertEquals(17.0, result.blackScore, "Score should include both territory and prisoner points");
+    }
+
+    @Test
     void testSingleDeadStoneInTerritory() {
         // White stone completely inside black territory
         // Black controls corner, white controls rest of board
@@ -376,12 +424,13 @@ public class ScoringEngineTest {
 
         ScoringEngine.ScoringResult result = scoringEngine.calculateScore(board, new ArrayList<>());
 
-        // Black territory = 16 positions (4x4 corner) - 1 white stone = 15 empty
-        assertEquals(15, result.blackTerritory);
+        // Black territory = 16 positions (4x4 corner, including dead stone position)
+        // In Japanese scoring, dead stone positions become territory after removal
+        assertEquals(16, result.blackTerritory);
         // White dead stones = 1
         assertEquals(1, result.whiteDeadStones);
-        // Black score = 15 + 1 (dead white stone) = 16
-        assertEquals(16.0, result.blackScore);
+        // Black score = 16 territory + 1 (dead white stone as prisoner) = 17
+        assertEquals(17.0, result.blackScore);
     }
 
     @Test
@@ -421,11 +470,12 @@ public class ScoringEngineTest {
 
         ScoringEngine.ScoringResult result = scoringEngine.calculateScore(board, new ArrayList<>());
 
-        // 16 positions in corner - 2 white stones = 14 empty territory
-        assertEquals(14, result.blackTerritory);
+        // 16 positions in corner (including 2 dead stone positions)
+        // In Japanese scoring, dead stone positions become territory after removal
+        assertEquals(16, result.blackTerritory);
         assertEquals(2, result.whiteDeadStones);
-        // Black score = 14 territory + 2 dead white = 16
-        assertEquals(16.0, result.blackScore);
+        // Black score = 16 territory + 2 dead white stones as prisoners = 18
+        assertEquals(18.0, result.blackScore);
     }
 
     @Test

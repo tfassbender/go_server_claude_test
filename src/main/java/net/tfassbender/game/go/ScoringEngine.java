@@ -375,8 +375,9 @@ public class ScoringEngine {
         while (!queue.isEmpty()) {
             Position current = queue.poll();
 
-            // Only add truly empty positions to the territory region
-            if (board.isEmpty(current)) {
+            // Add both empty positions AND dead stone positions to territory
+            // (In Japanese scoring, dead stone positions become territory after removal)
+            if (board.isEmpty(current) || deadStones.contains(current)) {
                 region.add(current);
             }
 
