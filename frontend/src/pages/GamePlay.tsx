@@ -157,6 +157,7 @@ const GamePlay = () => {
             onIntersectionClick={handleIntersectionClick}
             disabled={!isYourTurn}
             lastMove={lastMove}
+            territory={game.status === 'completed' && game.result?.territory ? game.result.territory : undefined}
           />
           {moveError && <div className="error move-error">{moveError}</div>}
         </div>

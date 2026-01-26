@@ -23,6 +23,14 @@ export interface GameResult {
     black: number;
     white: number;
   };
+  territory?: {
+    blackTerritory: Position[];
+    whiteTerritory: Position[];
+  };
+  captures?: {
+    black: number;
+    white: number;
+  };
 }
 
 export interface BoardState {

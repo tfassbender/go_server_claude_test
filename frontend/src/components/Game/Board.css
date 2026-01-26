@@ -35,3 +35,7 @@
 .last-move-marker {
   pointer-events: none;
 }
+
+.territory-marker {
+  pointer-events: none;
+}

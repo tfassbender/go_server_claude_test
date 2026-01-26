@@ -53,7 +53,13 @@
       "mcp__playwright__browser_select_option",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_tabs",
-      "mcp__playwright__browser_press_key"
+      "mcp__playwright__browser_press_key",
+      "Bash(gradlew.bat test:*)",
+      "Bash(cmd /c \"gradlew.bat test --tests net.tfassbender.game.go.ScoringEngineTest\")",
+      "Bash(powershell -Command \"cd ''C:\\\\Users\\\\Tobia\\\\intellij_workspace\\\\go_server_claude_test''; .\\\\gradlew.bat test --tests ''net.tfassbender.game.go.ScoringEngineTest''\")",
+      "Bash(powershell -Command \"cd ''C:\\\\Users\\\\Tobia\\\\intellij_workspace\\\\go_server_claude_test''; gradle wrapper\")",
+      "Bash(powershell -Command:*)",
+      "Bash(npm run lint)"
     ]
   }
 }

@@ -54,8 +54,48 @@ const GameInfo = ({ game, currentUsername }: GameInfoProps) => {
         <div className="info-section">
           <h3>Result</h3>
           <div className="result-info">
-            <p><strong>Winner:</strong> {game.result.winner === 'black' ? game.blackPlayer : game.whitePlayer}</p>
-            <p><strong>Method:</strong> {game.result.method}</p>
+            <p className="winner-summary">
+              {(() => {
+                const winnerName = game.result.winner === 'black' ? game.blackPlayer : game.whitePlayer;
+                const winnerColor = game.result.winner.charAt(0).toUpperCase() + game.result.winner.slice(1);
+
+                if (game.result.method === 'resignation') {
+                  return `${winnerColor} (${winnerName}) wins by resignation`;
+                } else if (game.result.method === 'score' && game.result.score) {
+                  const margin = Math.abs(game.result.score.black - game.result.score.white);
+                  return `${winnerColor} (${winnerName}) wins by ${margin} points`;
+                } else {
+                  return `${winnerColor} (${winnerName}) wins`;
+                }
+              })()}
+            </p>
+            {game.result.score && (
+              <div className="score-breakdown">
+                <h4>Final Score</h4>
+                <div className="score-row">
+                  <span className="score-label">Black:</span>
+                  <span className="score-value">{game.result.score.black}</span>
+                </div>
+                <div className="score-row">
+                  <span className="score-label">White:</span>
+                  <span className="score-value">{game.result.score.white}</span>
+                </div>
+                <p className="score-note">(includes 5.5 komi for white)</p>
+              </div>
+            )}
+            {game.result.captures && (
+              <div className="captures-breakdown">
+                <h4>Captured Stones</h4>
+                <div className="score-row">
+                  <span className="score-label">Black:</span>
+                  <span className="score-value">{game.result.captures.black}</span>
+                </div>
+                <div className="score-row">
+                  <span className="score-label">White:</span>
+                  <span className="score-value">{game.result.captures.white}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

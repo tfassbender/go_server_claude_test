@@ -3,6 +3,7 @@ package net.tfassbender.game.game;
 import net.tfassbender.game.go.Board;
 import net.tfassbender.game.go.GoRulesEngine;
 import net.tfassbender.game.go.Position;
+import net.tfassbender.game.go.ScoringEngine;
 import net.tfassbender.game.go.Stone;
 import net.tfassbender.game.user.UserService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,6 +27,9 @@ public class GameService {
 
     @Inject
     GoRulesEngine rulesEngine;
+
+    @Inject
+    ScoringEngine scoringEngine;
 
     /**
      * Create a new game
@@ -232,7 +236,35 @@ public class GameService {
         // Save game (might have changed to completed if 2 passes)
         String oldStatus = "active";
         if ("completed".equals(game.status)) {
+            // Calculate final score
+            Board board = reconstructBoard(game);
+            ScoringEngine.ScoringResult scoringResult = scoringEngine.calculateScore(
+                    board, game.moves, ScoringEngine.DEFAULT_KOMI
+            );
+
+            // Set game result
+            game.result = new GameResult();
+            game.result.winner = scoringResult.winner;
+            game.result.method = "score";
+            game.result.score = new GameResult.Score(scoringResult.blackScore, scoringResult.whiteScore);
+            game.result.territory = new GameResult.Territory(
+                    scoringResult.blackTerritoryPositions,
+                    scoringResult.whiteTerritoryPositions
+            );
+            game.result.captures = new GameResult.Captures(
+                    scoringResult.blackPrisoners,
+                    scoringResult.whitePrisoners
+            );
+
+            // Update user statistics
+            String winnerUsername = "black".equals(scoringResult.winner) ? game.blackPlayer : game.whitePlayer;
+            String loserUsername = "black".equals(scoringResult.winner) ? game.whitePlayer : game.blackPlayer;
+            userService.updateStatistics(winnerUsername, true);
+            userService.updateStatistics(loserUsername, false);
+
             gameRepository.moveGameFile(game, oldStatus);
+            LOG.info("Game {} completed by scoring: Black={}, White={}, Winner={}",
+                    gameId, scoringResult.blackScore, scoringResult.whiteScore, scoringResult.winner);
         } else {
             gameRepository.save(game);
         }
@@ -271,9 +303,8 @@ public class GameService {
 
         // Update user statistics
         String winnerUsername = "black".equals(winner) ? game.blackPlayer : game.whitePlayer;
-        String loserUsername = username;
         userService.updateStatistics(winnerUsername, true);
-        userService.updateStatistics(loserUsername, false);
+        userService.updateStatistics(username, false);
 
         // Move game to completed
         gameRepository.moveGameFile(game, "active");

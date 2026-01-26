@@ -2,15 +2,21 @@ import { Position } from '../../types/Position';
 import { StoneOnBoard } from '../../types/Game';
 import './Board.css';
 
+interface TerritoryMarkers {
+  blackTerritory: Position[];
+  whiteTerritory: Position[];
+}
+
 interface BoardProps {
   size: number;
   stones: StoneOnBoard[];
   onIntersectionClick?: (position: Position) => void;
   disabled?: boolean;
   lastMove?: Position;
+  territory?: TerritoryMarkers;
 }
 
-const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove }: BoardProps) => {
+const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove, territory }: BoardProps) => {
   const cellSize = 40;
   const margin = 30;
   const boardSize = cellSize * (size - 1) + 2 * margin;
@@ -56,6 +62,18 @@ const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove }
   stones.forEach(stone => {
     stoneMap.set(`${stone.position.x},${stone.position.y}`, stone.color);
   });
+
+  // Create maps for territory lookup
+  const blackTerritorySet = new Set<string>();
+  const whiteTerritorySet = new Set<string>();
+  if (territory) {
+    territory.blackTerritory.forEach(pos => {
+      blackTerritorySet.add(`${pos.x},${pos.y}`);
+    });
+    territory.whiteTerritory.forEach(pos => {
+      whiteTerritorySet.add(`${pos.x},${pos.y}`);
+    });
+  }
 
   const isLastMove = (x: number, y: number): boolean => {
     return lastMove ? lastMove.x === x && lastMove.y === y : false;
@@ -113,6 +131,32 @@ const Board = ({ size, stones, onIntersectionClick, disabled = false, lastMove }
             fill="#000"
           />
         ))}
+
+        {/* Territory markers */}
+        {territory && Array.from({ length: size }).map((_, x) =>
+          Array.from({ length: size }).map((_, y) => {
+            const key = `${x},${y}`;
+            const isBlackTerritory = blackTerritorySet.has(key);
+            const isWhiteTerritory = whiteTerritorySet.has(key);
+
+            if (!isBlackTerritory && !isWhiteTerritory) return null;
+
+            return (
+              <rect
+                key={`territory-${x}-${y}`}
+                x={getCoordinate(x) - cellSize / 4}
+                y={getCoordinate(y) - cellSize / 4}
+                width={cellSize / 2}
+                height={cellSize / 2}
+                fill={isBlackTerritory ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.7)'}
+                stroke={isBlackTerritory ? '#000' : '#666'}
+                strokeWidth="1"
+                rx="2"
+                className="territory-marker"
+              />
+            );
+          })
+        )}
 
         {/* Click areas for intersections */}
         {Array.from({ length: size }).map((_, x) =>
