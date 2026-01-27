@@ -6,6 +6,7 @@ import GameLobby from './pages/GameLobby';
 import CreateGame from './pages/CreateGame';
 import GamePlay from './pages/GamePlay';
 import GameAnalysis from './pages/GameAnalysis';
+import ForkAnalysis from './pages/ForkAnalysis';
 import Header from './components/Layout/Header';
 import './App.css';
 
@@ -44,6 +45,10 @@ function AppRoutes() {
 
           <Route path="/analyze/:gameId" element={
             isAuthenticated ? <GameAnalysis /> : <Navigate to="/login" />
+          } />
+
+          <Route path="/analyze/:gameId/fork" element={
+            isAuthenticated ? <ForkAnalysis /> : <Navigate to="/login" />
           } />
 
           <Route path="/" element={

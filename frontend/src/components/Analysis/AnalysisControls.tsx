@@ -10,6 +10,7 @@ interface AnalysisControlsProps {
   onShowMoveNumbersChange: (show: boolean) => void;
   onShowTerritoryChange: (show: boolean) => void;
   onGoToMove: (index: number) => void;
+  onCreateFork?: () => void;
 }
 
 const AnalysisControls = ({
@@ -20,7 +21,8 @@ const AnalysisControls = ({
   showTerritory,
   onShowMoveNumbersChange,
   onShowTerritoryChange,
-  onGoToMove
+  onGoToMove,
+  onCreateFork
 }: AnalysisControlsProps) => {
   const isAtStart = currentMoveIndex < 0;
   const isAtEnd = currentMoveIndex >= totalMoves - 1;
@@ -85,6 +87,19 @@ const AnalysisControls = ({
         >
           ⏭
         </button>
+
+        {onCreateFork && (
+          <>
+            <span className="nav-separator">|</span>
+            <button
+              className="fork-button-nav"
+              onClick={onCreateFork}
+              title="Create a fork from this position to explore alternative moves"
+            >
+              Create Fork
+            </button>
+          </>
+        )}
       </div>
 
       <div className="slider-row">

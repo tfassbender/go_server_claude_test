@@ -59,7 +59,10 @@
       "Bash(powershell -Command \"cd ''C:\\\\Users\\\\Tobia\\\\intellij_workspace\\\\go_server_claude_test''; .\\\\gradlew.bat test --tests ''net.tfassbender.game.go.ScoringEngineTest''\")",
       "Bash(powershell -Command \"cd ''C:\\\\Users\\\\Tobia\\\\intellij_workspace\\\\go_server_claude_test''; gradle wrapper\")",
       "Bash(powershell -Command:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx vite build)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

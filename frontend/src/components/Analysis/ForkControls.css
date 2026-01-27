@@ -1,0 +1,139 @@
+.fork-controls {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 200px;
+}
+
+.turn-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.turn-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.turn-stone {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.turn-stone.black {
+  background: #000;
+}
+
+.turn-stone.white {
+  background: #fff;
+  border: 1px solid #333;
+}
+
+.turn-color {
+  font-weight: 600;
+  color: #333;
+}
+
+.fork-move-counter {
+  text-align: center;
+  color: #555;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.fork-control-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.button-row .fork-button {
+  flex: 1;
+}
+
+.fork-button {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fork-button:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #ccc;
+}
+
+.fork-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fork-button.secondary {
+  background: #f8f9fa;
+}
+
+.fork-button.secondary:hover:not(:disabled) {
+  background: #e9ecef;
+}
+
+.fork-button.danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.fork-button.danger:hover:not(:disabled) {
+  background: #dc3545;
+  color: #fff;
+}
+
+.fork-hints {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hint-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.hint-key {
+  font-family: monospace;
+  background: #f0f0f0;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  min-width: 55px;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.hint-desc {
+  color: #555;
+}

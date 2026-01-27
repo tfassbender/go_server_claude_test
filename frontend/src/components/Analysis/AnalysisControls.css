@@ -128,3 +128,29 @@
   color: #999;
   margin-left: 0.25rem;
 }
+
+.nav-separator {
+  color: #ccc;
+  margin: 0 0.25rem;
+}
+
+.fork-button-nav {
+  padding: 0.5rem 1rem;
+  border: 1px solid #667eea;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fork-button-nav:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.fork-button-nav:active {
+  transform: translateY(0);
+}

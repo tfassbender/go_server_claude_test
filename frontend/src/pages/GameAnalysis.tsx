@@ -86,6 +86,11 @@ const GameAnalysis = () => {
     setCurrentMoveIndex(clampedIndex);
   }, [game]);
 
+  const handleCreateFork = useCallback(() => {
+    if (!gameId) return;
+    navigate(`/analyze/${gameId}/fork`, { state: { moveIndex: currentMoveIndex } });
+  }, [gameId, currentMoveIndex, navigate]);
+
   if (loading) {
     return (
       <div className="container">
@@ -175,6 +180,7 @@ const GameAnalysis = () => {
               onShowMoveNumbersChange={setShowMoveNumbers}
               onShowTerritoryChange={setShowTerritory}
               onGoToMove={goToMove}
+              onCreateFork={handleCreateFork}
             />
 
             <div className="keyboard-hints">
