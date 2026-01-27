@@ -14,6 +14,7 @@ export interface Game {
   passes: number;
   result?: GameResult;
   boardState?: BoardState;
+  komi: number;
 }
 
 export interface GameResult {

@@ -26,6 +26,11 @@ const GameInfo = ({ game, currentUsername }: GameInfoProps) => {
             {game.status.charAt(0).toUpperCase() + game.status.slice(1)}
           </span>
         </div>
+
+        <div className="info-row">
+          <span className="label">Komi:</span>
+          <span className="value">{game.komi}</span>
+        </div>
       </div>
 
       <div className="info-section">
@@ -80,7 +85,7 @@ const GameInfo = ({ game, currentUsername }: GameInfoProps) => {
                   <span className="score-label">White:</span>
                   <span className="score-value">{game.result.score.white}</span>
                 </div>
-                <p className="score-note">(includes 5.5 komi for white)</p>
+                <p className="score-note">(includes {game.komi} komi for white)</p>
               </div>
             )}
             {game.result.captures && (

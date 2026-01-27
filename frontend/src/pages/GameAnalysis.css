@@ -31,6 +31,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.5rem;
 }
 
 .analysis-sidebar {
@@ -79,16 +80,27 @@
   color: #0d6efd;
 }
 
+.info-section-header {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
 .analysis-controls-section {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: stretch;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 800px;
 }
 
 .analysis-controls-section > :first-child {
-  flex: 0 1 500px;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .keyboard-hints {
@@ -133,21 +145,19 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .analysis-controls-section {
     flex-direction: column;
     align-items: center;
+    max-width: 100%;
   }
 
   .analysis-controls-section > :first-child {
-    flex: 1 1 auto;
     width: 100%;
-    max-width: 500px;
   }
 
   .keyboard-hints {
     width: 100%;
-    max-width: 500px;
   }
 
   .shortcuts-list {

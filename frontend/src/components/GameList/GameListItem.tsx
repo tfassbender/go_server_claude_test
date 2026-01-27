@@ -14,7 +14,7 @@ const GameListItem = ({ game, onAccept, onDecline }: GameListItemProps) => {
   const lastMoveDate = new Date(game.lastMoveAt).toLocaleString();
 
   return (
-    <div className={`game-item ${isPending ? 'pending' : ''} ${isMyTurn ? 'my-turn' : ''}`}>
+    <div className={`game-item ${isPending ? 'pending' : ''} ${isMyTurn && game.status === 'active' ? 'my-turn' : ''}`}>
       <div className="game-info">
         <div className="game-title">
           <strong>vs {game.opponent}</strong>

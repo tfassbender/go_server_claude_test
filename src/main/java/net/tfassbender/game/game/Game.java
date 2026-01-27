@@ -19,6 +19,7 @@ public class Game {
     public int passes;              // Consecutive passes (game ends after 2)
     public GameResult result;
     public String koBlockedHash; // Board state that is blocked by Ko rule (state before last move)
+    public double komi;              // Compensation points for white (default 5.5)
 
     public Game() {
         this.id = UUID.randomUUID().toString();
@@ -28,13 +29,15 @@ public class Game {
         this.passes = 0;
         this.status = "pending";
         this.currentTurn = "black";
+        this.komi = 5.5;
     }
 
-    public Game(int boardSize, String blackPlayer, String whitePlayer) {
+    public Game(int boardSize, String blackPlayer, String whitePlayer, double komi) {
         this();
         this.boardSize = boardSize;
         this.blackPlayer = blackPlayer;
         this.whitePlayer = whitePlayer;
+        this.komi = komi;
     }
 
     public boolean isPlayerTurn(String username) {

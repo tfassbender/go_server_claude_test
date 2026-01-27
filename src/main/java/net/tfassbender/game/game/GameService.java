@@ -34,7 +34,7 @@ public class GameService {
     /**
      * Create a new game
      */
-    public Game createGame(String creatorUsername, int boardSize, String opponentUsername, String requestedColor) throws IOException {
+    public Game createGame(String creatorUsername, int boardSize, String opponentUsername, String requestedColor, double komi) throws IOException {
         // Validate board size
         if (boardSize != 9 && boardSize != 13 && boardSize != 19) {
             throw new IllegalArgumentException("Board size must be 9, 13, or 19");
@@ -72,7 +72,7 @@ public class GameService {
         }
 
         // Create game
-        Game game = new Game(boardSize, blackPlayer, whitePlayer);
+        Game game = new Game(boardSize, blackPlayer, whitePlayer, komi);
         game.createdBy = creatorUsername;
         gameRepository.save(game);
 
@@ -240,7 +240,7 @@ public class GameService {
             // Calculate final score
             Board board = reconstructBoard(game);
             ScoringEngine.ScoringResult scoringResult = scoringEngine.calculateScore(
-                    board, game.moves, ScoringEngine.DEFAULT_KOMI
+                    board, game.moves, game.komi
             );
 
             // Set game result
@@ -395,7 +395,7 @@ public class GameService {
 
         // Calculate score with manual dead stones
         ScoringEngine.ScoringResult scoringResult = scoringEngine.calculateScoreWithManualDeadStones(
-                board, game.moves, ScoringEngine.DEFAULT_KOMI, manuallyMarkedDeadStones
+                board, game.moves, game.komi, manuallyMarkedDeadStones
         );
 
         // Update game result

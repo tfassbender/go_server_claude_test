@@ -6,6 +6,7 @@ export interface CreateGameRequest {
   boardSize: number;
   opponentUsername: string;
   requestedColor: 'black' | 'white' | 'random';
+  komi: number;
 }
 
 export interface MoveRequest {

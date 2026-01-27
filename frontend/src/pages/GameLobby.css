@@ -13,12 +13,13 @@
 .tabs {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   border-bottom: 2px solid #e9ecef;
 }
 
 .tab {
   padding: 1rem 1.5rem;
+  min-width: 250px;
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
@@ -40,4 +41,121 @@
 
 .tab-content {
   margin-top: 1rem;
+}
+
+/* Opponent filter section */
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+}
+
+.filter-section label {
+  font-weight: 500;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.opponent-filter-dropdown {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.filter-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-input-wrapper input {
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.filter-input-wrapper input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.clear-filter-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s;
+}
+
+.clear-filter-btn:hover {
+  background-color: #e9ecef;
+  color: #666;
+}
+
+.opponent-filter-dropdown .dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 100;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.opponent-filter-dropdown .dropdown-list li {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.opponent-filter-dropdown .dropdown-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.opponent-filter-dropdown .dropdown-list li.selected {
+  background-color: #e3f2fd;
+  font-weight: 500;
+}
+
+.opponent-filter-dropdown .dropdown-empty {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  color: #666;
+  font-style: italic;
+  z-index: 100;
 }

@@ -13,6 +13,7 @@ const CreateGame = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [boardSize, setBoardSize] = useState<9 | 13 | 19>(19);
   const [requestedColor, setRequestedColor] = useState<'black' | 'white' | 'random'>('black');
+  const [komi, setKomi] = useState<number>(5.5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -77,7 +78,8 @@ const CreateGame = () => {
       await gameService.createGame({
         opponentUsername,
         boardSize,
-        requestedColor
+        requestedColor,
+        komi
       });
 
       // Redirect to lobby with pending tab since the game needs to be accepted first
@@ -158,6 +160,24 @@ const CreateGame = () => {
                 <option value="black">Black (play first)</option>
                 <option value="white">White (play second)</option>
                 <option value="random">Random</option>
+              </select>
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="komi">Komi (compensation for White)</label>
+              <select
+                id="komi"
+                value={komi}
+                onChange={(e) => setKomi(Number(e.target.value))}
+                disabled={loading}
+              >
+                <option value={0}>0</option>
+                <option value={3.5}>3.5</option>
+                <option value={4.5}>4.5</option>
+                <option value={5.5}>5.5</option>
+                <option value={6.5}>6.5</option>
+                <option value={7.5}>7.5</option>
+                <option value={8.5}>8.5</option>
               </select>
             </div>
 

@@ -47,7 +47,8 @@ public class GameResource {
                     username,
                     request.boardSize,
                     request.opponentUsername,
-                    request.requestedColor
+                    request.requestedColor,
+                    request.komi
             );
 
             Map<String, Object> response = new HashMap<>();
@@ -156,6 +157,7 @@ public class GameResource {
             response.put("passes", game.passes);
             response.put("result", game.result);
             response.put("boardState", Map.of("stones", stones));
+            response.put("komi", game.komi);
 
             return Response.ok(response).build();
 
@@ -402,6 +404,7 @@ public class GameResource {
         public int boardSize;
         public String opponentUsername;
         public String requestedColor;
+        public double komi = 5.5;  // Default komi
     }
 
     public static class MoveRequest {

@@ -164,6 +164,29 @@ const GameAnalysis = () => {
             showMoveNumbers={showMoveNumbers}
             moveNumberMap={moveNumberMap}
           />
+
+          <div className="analysis-controls-section">
+            <AnalysisControls
+              currentMoveIndex={currentMoveIndex}
+              totalMoves={game.moves.length}
+              moves={game.moves}
+              showMoveNumbers={showMoveNumbers}
+              showTerritory={showTerritory}
+              onShowMoveNumbersChange={setShowMoveNumbers}
+              onShowTerritoryChange={setShowTerritory}
+              onGoToMove={goToMove}
+            />
+
+            <div className="keyboard-hints">
+              <h4>Keyboard Shortcuts</h4>
+              <div className="shortcuts-list">
+                <span><kbd>←</kbd> Previous</span>
+                <span><kbd>→</kbd> Next</span>
+                <span><kbd>Home</kbd> Start</span>
+                <span><kbd>End</kbd> End</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="analysis-sidebar">
@@ -188,6 +211,10 @@ const GameAnalysis = () => {
               <span className="value">{game.boardSize}×{game.boardSize}</span>
             </div>
             <div className="info-row">
+              <span className="label">Komi:</span>
+              <span className="value">{game.komi}</span>
+            </div>
+            <div className="info-row">
               <span className="label">Result:</span>
               <span className="value result">{getResultText()}</span>
             </div>
@@ -199,29 +226,35 @@ const GameAnalysis = () => {
                 </span>
               </div>
             )}
-          </div>
-        </div>
-      </div>
-
-      <div className="analysis-controls-section">
-        <AnalysisControls
-          currentMoveIndex={currentMoveIndex}
-          totalMoves={game.moves.length}
-          moves={game.moves}
-          showMoveNumbers={showMoveNumbers}
-          showTerritory={showTerritory}
-          onShowMoveNumbersChange={setShowMoveNumbers}
-          onShowTerritoryChange={setShowTerritory}
-          onGoToMove={goToMove}
-        />
-
-        <div className="keyboard-hints">
-          <h4>Keyboard Shortcuts</h4>
-          <div className="shortcuts-list">
-            <span><kbd>←</kbd> Previous</span>
-            <span><kbd>→</kbd> Next</span>
-            <span><kbd>Home</kbd> Start</span>
-            <span><kbd>End</kbd> End</span>
+            {game.result?.captures && (
+              <>
+                <div className="info-section-header">Captured Stones</div>
+                <div className="info-row">
+                  <span className="label">Black:</span>
+                  <span className="value">{game.result.captures.black}</span>
+                </div>
+                <div className="info-row">
+                  <span className="label">White:</span>
+                  <span className="value">{game.result.captures.white}</span>
+                </div>
+              </>
+            )}
+            {game.result?.deadStones && (
+              game.result.deadStones.blackDeadStones.length > 0 ||
+              game.result.deadStones.whiteDeadStones.length > 0
+            ) && (
+              <>
+                <div className="info-section-header">Prisoners (Dead Stones)</div>
+                <div className="info-row">
+                  <span className="label">Black:</span>
+                  <span className="value">{game.result.deadStones.whiteDeadStones.length}</span>
+                </div>
+                <div className="info-row">
+                  <span className="label">White:</span>
+                  <span className="value">{game.result.deadStones.blackDeadStones.length}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
