@@ -23,6 +23,8 @@ interface BoardProps {
   markedDeadStones?: Position[];
   onStoneClick?: (position: Position) => void;
   deadStones?: DeadStonesMarkers;
+  showMoveNumbers?: boolean;
+  moveNumberMap?: Map<string, number>;
 }
 
 const Board = ({
@@ -35,7 +37,9 @@ const Board = ({
   fixMode = false,
   markedDeadStones = [],
   onStoneClick,
-  deadStones
+  deadStones,
+  showMoveNumbers = false,
+  moveNumberMap
 }: BoardProps) => {
   const cellSize = 40;
   const margin = 30;
@@ -263,8 +267,8 @@ const Board = ({
                   className={`stone${fixMode ? ' fix-mode-stone' : ''}`}
                   onClick={fixMode ? () => handleClick(x, y) : undefined}
                 />
-                {/* Last move marker */}
-                {isLastMove(x, y) && (
+                {/* Last move marker (only show if not showing move numbers) */}
+                {isLastMove(x, y) && !showMoveNumbers && (
                   <circle
                     cx={cx}
                     cy={cy}
@@ -272,6 +276,21 @@ const Board = ({
                     fill={stone === 'black' ? '#fff' : '#000'}
                     className="last-move-marker"
                   />
+                )}
+                {/* Move number */}
+                {showMoveNumbers && moveNumberMap && moveNumberMap.has(`${x},${y}`) && (
+                  <text
+                    x={cx}
+                    y={cy}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill={stone === 'black' ? '#fff' : '#000'}
+                    fontSize="12"
+                    fontWeight="bold"
+                    className="move-number"
+                  >
+                    {moveNumberMap.get(`${x},${y}`)}
+                  </text>
                 )}
                 {/* Dead stone marker (X) - fix mode (red) */}
                 {fixMode && isDead && (

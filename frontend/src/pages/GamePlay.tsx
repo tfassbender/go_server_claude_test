@@ -173,6 +173,8 @@ const GamePlay = () => {
     );
   }
 
+  const lobbyUrl = game.status === 'completed' ? '/lobby?tab=completed' : '/lobby';
+
   const yourColor = currentUsername === game.blackPlayer ? 'black' : 'white';
   const isYourTurn = game.currentTurn === yourColor && game.status === 'active';
   const lastMove = game.moves.length > 0 ? game.moves[game.moves.length - 1].position : undefined;
@@ -180,7 +182,7 @@ const GamePlay = () => {
   return (
     <div className="container">
       <div className="game-header">
-        <button onClick={() => navigate('/lobby')} className="button button-secondary">
+        <button onClick={() => navigate(lobbyUrl)} className="button button-secondary">
           ← Back to Lobby
         </button>
         <div className="connection-status">

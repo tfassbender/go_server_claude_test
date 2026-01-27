@@ -61,9 +61,18 @@ const GameListItem = ({ game, onAccept, onDecline }: GameListItemProps) => {
               {game.isCreator ? 'Cancel' : 'Decline'}
             </button>
           </>
+        ) : game.status === 'completed' ? (
+          <>
+            <Link to={`/game/${game.id}`} className="button button-secondary">
+              View
+            </Link>
+            <Link to={`/analyze/${game.id}`} className="button button-primary">
+              Analyze
+            </Link>
+          </>
         ) : (
           <Link to={`/game/${game.id}`} className="button button-primary">
-            {game.status === 'completed' ? 'View' : 'Play'}
+            Play
           </Link>
         )}
       </div>

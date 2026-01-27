@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import GameLobby from './pages/GameLobby';
 import CreateGame from './pages/CreateGame';
 import GamePlay from './pages/GamePlay';
+import GameAnalysis from './pages/GameAnalysis';
 import Header from './components/Layout/Header';
 import './App.css';
 
@@ -39,6 +40,10 @@ function AppRoutes() {
 
           <Route path="/game/:gameId" element={
             isAuthenticated ? <GamePlay /> : <Navigate to="/login" />
+          } />
+
+          <Route path="/analyze/:gameId" element={
+            isAuthenticated ? <GameAnalysis /> : <Navigate to="/login" />
           } />
 
           <Route path="/" element={

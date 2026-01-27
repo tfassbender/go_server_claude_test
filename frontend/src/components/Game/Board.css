@@ -53,3 +53,8 @@
 .dead-stone-marker {
   pointer-events: none;
 }
+
+.move-number {
+  pointer-events: none;
+  user-select: none;
+}
