@@ -426,6 +426,62 @@ public class GameService {
     }
 
     /**
+     * Calculate score for a fork (non-persisted game state).
+     * This reconstructs the board from the provided moves and calculates the score.
+     */
+    public GameResult calculateForkScore(int boardSize, List<Move> moves, double komi, List<Position> manuallyMarkedDeadStones) {
+        // Reconstruct board from moves
+        List<GoRulesEngine.MoveData> movesData = new ArrayList<>();
+        for (Move move : moves) {
+            if ("place".equals(move.action)) {
+                movesData.add(new GoRulesEngine.MoveData(move.player, move.action, move.position));
+            }
+        }
+
+        Board board = rulesEngine.reconstructBoard(boardSize, movesData);
+
+        // Validate all marked positions contain actual stones
+        for (Position pos : manuallyMarkedDeadStones) {
+            if (board.getStone(pos) == null) {
+                throw new IllegalArgumentException("Position " + pos + " does not contain a stone");
+            }
+        }
+
+        // Calculate score
+        ScoringEngine.ScoringResult scoringResult;
+        if (manuallyMarkedDeadStones.isEmpty()) {
+            // Use automatic dead stone detection
+            scoringResult = scoringEngine.calculateScore(board, moves, komi);
+        } else {
+            // Use manually marked dead stones
+            scoringResult = scoringEngine.calculateScoreWithManualDeadStones(board, moves, komi, manuallyMarkedDeadStones);
+        }
+
+        // Create and return game result
+        GameResult result = new GameResult();
+        result.winner = scoringResult.winner;
+        result.method = "score";
+        result.score = new GameResult.Score(scoringResult.blackScore, scoringResult.whiteScore);
+        result.territory = new GameResult.Territory(
+                scoringResult.blackTerritoryPositions,
+                scoringResult.whiteTerritoryPositions
+        );
+        result.captures = new GameResult.Captures(
+                scoringResult.blackPrisoners,
+                scoringResult.whitePrisoners
+        );
+        result.deadStones = new GameResult.DeadStones(
+                scoringResult.blackDeadStonePositions,
+                scoringResult.whiteDeadStonePositions
+        );
+
+        LOG.info("Fork score calculated: boardSize={}, moves={}, Black={}, White={}, Winner={}",
+                boardSize, moves.size(), scoringResult.blackScore, scoringResult.whiteScore, scoringResult.winner);
+
+        return result;
+    }
+
+    /**
      * Response object for move operations
      */
     public static class MoveResponse {

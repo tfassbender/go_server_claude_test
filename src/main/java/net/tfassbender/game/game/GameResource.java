@@ -399,6 +399,50 @@ public class GameResource {
         }
     }
 
+    /**
+     * Calculate score for a fork (non-persisted game state).
+     * This endpoint calculates the score based on provided moves without requiring a saved game.
+     */
+    @POST
+    @Path("/calculate-fork-score")
+    public Response calculateForkScore(CalculateForkScoreRequest request) {
+        try {
+            if (request.boardSize != 9 && request.boardSize != 13 && request.boardSize != 19) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "Board size must be 9, 13, or 19"))
+                        .build();
+            }
+
+            if (request.moves == null) {
+                request.moves = new ArrayList<>();
+            }
+
+            if (request.manuallyMarkedDeadStones == null) {
+                request.manuallyMarkedDeadStones = new ArrayList<>();
+            }
+
+            GameResult result = gameService.calculateForkScore(
+                    request.boardSize,
+                    request.moves,
+                    request.komi,
+                    request.manuallyMarkedDeadStones
+            );
+
+            return Response.ok(result).build();
+
+        } catch (IllegalArgumentException e) {
+            LOG.debug("Fork score calculation failed: {}", e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        } catch (Exception e) {
+            LOG.error("Error calculating fork score", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Failed to calculate fork score"))
+                    .build();
+        }
+    }
+
     // Request DTOs
     public static class CreateGameRequest {
         public int boardSize;
@@ -413,6 +457,13 @@ public class GameResource {
     }
 
     public static class RecalculateScoreRequest {
+        public List<Position> manuallyMarkedDeadStones;
+    }
+
+    public static class CalculateForkScoreRequest {
+        public int boardSize;
+        public List<Move> moves;
+        public double komi = 5.5;
         public List<Position> manuallyMarkedDeadStones;
     }
 }

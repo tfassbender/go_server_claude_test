@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import { Game, GameListItem, GameResult } from '../types/Game';
 import { Position } from '../types/Position';
+import { Move } from '../types/Move';
 
 export interface CreateGameRequest {
   boardSize: number;
@@ -66,6 +67,19 @@ const gameService = {
     const response = await apiClient.post<GameResult>(
       `/games/${gameId}/recalculate-score`,
       { manuallyMarkedDeadStones }
+    );
+    return response.data;
+  },
+
+  async calculateForkScore(
+    boardSize: number,
+    moves: Move[],
+    komi: number,
+    manuallyMarkedDeadStones: Position[]
+  ): Promise<GameResult> {
+    const response = await apiClient.post<GameResult>(
+      '/games/calculate-fork-score',
+      { boardSize, moves, komi, manuallyMarkedDeadStones }
     );
     return response.data;
   }

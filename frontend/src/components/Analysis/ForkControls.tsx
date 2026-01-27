@@ -11,6 +11,7 @@ interface ForkControlsProps {
   onRedo: () => void;
   onClearAll: () => void;
   onPass: () => void;
+  disabled?: boolean;
 }
 
 const ForkControls = ({
@@ -23,6 +24,7 @@ const ForkControls = ({
   onRedo,
   onClearAll,
   onPass,
+  disabled = false,
 }: ForkControlsProps) => {
   const displayMoveNumber = currentForkMoveIndex + 1;
 
@@ -47,7 +49,7 @@ const ForkControls = ({
           <button
             className="fork-button"
             onClick={onUndo}
-            disabled={!canUndo}
+            disabled={disabled || !canUndo}
             title="Undo (Ctrl+Z)"
           >
             Undo
@@ -55,7 +57,7 @@ const ForkControls = ({
           <button
             className="fork-button"
             onClick={onRedo}
-            disabled={!canRedo}
+            disabled={disabled || !canRedo}
             title="Redo (Ctrl+Y)"
           >
             Redo
@@ -65,6 +67,7 @@ const ForkControls = ({
           <button
             className="fork-button secondary"
             onClick={onPass}
+            disabled={disabled}
             title="Pass turn without placing a stone"
           >
             Pass
@@ -72,7 +75,7 @@ const ForkControls = ({
           <button
             className="fork-button danger"
             onClick={onClearAll}
-            disabled={forkMoveCount === 0}
+            disabled={disabled || forkMoveCount === 0}
             title="Clear all fork moves"
           >
             Clear All

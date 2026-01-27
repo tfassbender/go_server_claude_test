@@ -108,3 +108,189 @@
   font-size: 0.85rem;
   text-align: center;
 }
+
+/* Score Calculation Panel */
+.score-calculation-panel {
+  display: flex;
+  justify-content: center;
+}
+
+.calculate-score-button {
+  width: 100%;
+}
+
+/* Fix Territory Panel */
+.fix-territory-panel {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.fix-instructions {
+  font-size: 0.85rem;
+  color: #856404;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.marked-count {
+  font-weight: 500;
+  color: #856404;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(255, 193, 7, 0.2);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.score-error {
+  margin-bottom: 0.75rem;
+}
+
+.fix-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fix-buttons .button {
+  width: 100%;
+}
+
+/* Score Result Panel */
+.score-result-panel {
+  background: #d4edda;
+  border: 1px solid #28a745;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.score-result-panel h3 {
+  margin: 0 0 0.75rem 0;
+  color: #155724;
+  font-size: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.winner-announcement {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #155724;
+  text-align: center;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  background: rgba(40, 167, 69, 0.15);
+  border-radius: 4px;
+}
+
+.score-breakdown {
+  margin-bottom: 0.75rem;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.95rem;
+}
+
+.score-label {
+  color: #155724;
+}
+
+.score-value {
+  font-weight: 600;
+  color: #155724;
+}
+
+.score-note {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  text-align: center;
+  font-style: italic;
+}
+
+.captures-info,
+.dead-stones-info {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(40, 167, 69, 0.3);
+  font-size: 0.85rem;
+  color: #155724;
+}
+
+.captures-info h4,
+.dead-stones-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #155724;
+}
+
+.reset-score-button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Original Game Result Panel */
+.original-game-result-panel {
+  background: #e7f3ff;
+  border: 1px solid #0066cc;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.original-game-result-panel h3 {
+  margin: 0 0 0.75rem 0;
+  color: #004085;
+  font-size: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 102, 204, 0.3);
+}
+
+.original-game-result-panel .winner-announcement {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #004085;
+  text-align: center;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  background: rgba(0, 102, 204, 0.1);
+  border-radius: 4px;
+}
+
+.original-game-result-panel .score-breakdown {
+  margin-bottom: 0;
+}
+
+.original-game-result-panel .score-breakdown h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #004085;
+}
+
+.original-game-result-panel .score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+}
+
+.original-game-result-panel .score-label {
+  color: #004085;
+}
+
+.original-game-result-panel .score-value {
+  font-weight: 600;
+  color: #004085;
+}
+
+.original-game-result-panel .score-note {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  text-align: center;
+  font-style: italic;
+}

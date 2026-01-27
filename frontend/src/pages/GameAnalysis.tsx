@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import gameService from '../services/gameService';
 import authService from '../services/authService';
 import { Game } from '../types/Game';
@@ -8,9 +8,15 @@ import AnalysisControls from '../components/Analysis/AnalysisControls';
 import { reconstructBoardAtMove, buildMoveNumberMap, getLastMovePosition } from '../utils/boardReconstruction';
 import './GameAnalysis.css';
 
+interface LocationState {
+  moveIndex?: number;
+}
+
 const GameAnalysis = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as LocationState | null;
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,8 +32,9 @@ const GameAnalysis = () => {
       try {
         const gameData = await gameService.getGame(gameId);
         setGame(gameData);
-        // Start at the end of the game
-        setCurrentMoveIndex(gameData.moves.length - 1);
+        // Use moveIndex from location state if provided, otherwise start at the end
+        const initialMoveIndex = locationState?.moveIndex ?? gameData.moves.length - 1;
+        setCurrentMoveIndex(initialMoveIndex);
         setError('');
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load game');
@@ -37,7 +44,7 @@ const GameAnalysis = () => {
     };
 
     loadGame();
-  }, [gameId]);
+  }, [gameId, locationState?.moveIndex]);
 
   // Keyboard navigation
   useEffect(() => {

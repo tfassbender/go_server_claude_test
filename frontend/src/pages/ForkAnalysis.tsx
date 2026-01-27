@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import gameService from '../services/gameService';
-import { Game, StoneOnBoard } from '../types/Game';
+import { Game, GameResult, StoneOnBoard } from '../types/Game';
+import { Move } from '../types/Move';
 import { Position } from '../types/Position';
 import Board from '../components/Game/Board';
 import ForkControls from '../components/Analysis/ForkControls';
@@ -38,6 +39,13 @@ const ForkAnalysis = () => {
   const [forkMoves, setForkMoves] = useState<ForkMove[]>([]);
   const [currentForkMoveIndex, setCurrentForkMoveIndex] = useState<number>(-1);
   const [moveError, setMoveError] = useState<string>('');
+
+  // Score calculation state
+  const [scoreResult, setScoreResult] = useState<GameResult | null>(null);
+  const [fixMode, setFixMode] = useState<boolean>(false);
+  const [markedDeadStones, setMarkedDeadStones] = useState<Position[]>([]);
+  const [calculatingScore, setCalculatingScore] = useState<boolean>(false);
+  const [scoreError, setScoreError] = useState<string>('');
 
   // Load the game
   useEffect(() => {
@@ -184,7 +192,7 @@ const ForkAnalysis = () => {
 
   // Handle placing a stone
   const handleIntersectionClick = useCallback((position: Position) => {
-    if (!game) return;
+    if (!game || fixMode) return;
 
     setMoveError('');
 
@@ -208,11 +216,17 @@ const ForkAnalysis = () => {
 
     setForkMoves(newForkMoves);
     setCurrentForkMoveIndex(newForkMoves.length - 1);
-  }, [game, currentBoard, nextTurn, koBlockedHash, forkMoves, currentForkMoveIndex]);
+
+    // Reset score when making a new move
+    if (scoreResult) {
+      setScoreResult(null);
+      setScoreError('');
+    }
+  }, [game, fixMode, currentBoard, nextTurn, koBlockedHash, forkMoves, currentForkMoveIndex, scoreResult]);
 
   // Handle pass
   const handlePass = useCallback(() => {
-    if (!game) return;
+    if (!game || fixMode) return;
 
     setMoveError('');
 
@@ -228,30 +242,138 @@ const ForkAnalysis = () => {
 
     setForkMoves(newForkMoves);
     setCurrentForkMoveIndex(newForkMoves.length - 1);
-  }, [game, nextTurn, currentBoard, forkMoves, currentForkMoveIndex]);
+
+    // Reset score when making a new move
+    if (scoreResult) {
+      setScoreResult(null);
+      setScoreError('');
+    }
+  }, [game, fixMode, nextTurn, currentBoard, forkMoves, currentForkMoveIndex, scoreResult]);
 
   // Handle undo
   const handleUndo = useCallback(() => {
     if (currentForkMoveIndex >= 0) {
       setCurrentForkMoveIndex(currentForkMoveIndex - 1);
       setMoveError('');
+      // Reset score when undoing
+      if (scoreResult) {
+        setScoreResult(null);
+        setFixMode(false);
+        setMarkedDeadStones([]);
+        setScoreError('');
+      }
     }
-  }, [currentForkMoveIndex]);
+  }, [currentForkMoveIndex, scoreResult]);
 
   // Handle redo
   const handleRedo = useCallback(() => {
     if (currentForkMoveIndex < forkMoves.length - 1) {
       setCurrentForkMoveIndex(currentForkMoveIndex + 1);
       setMoveError('');
+      // Reset score when redoing
+      if (scoreResult) {
+        setScoreResult(null);
+        setFixMode(false);
+        setMarkedDeadStones([]);
+        setScoreError('');
+      }
     }
-  }, [currentForkMoveIndex, forkMoves.length]);
+  }, [currentForkMoveIndex, forkMoves.length, scoreResult]);
 
   // Handle clear all
   const handleClearAll = useCallback(() => {
     setForkMoves([]);
     setCurrentForkMoveIndex(-1);
     setMoveError('');
+    // Reset score when clearing fork
+    setScoreResult(null);
+    setFixMode(false);
+    setMarkedDeadStones([]);
+    setScoreError('');
   }, []);
+
+  // Reset score calculation
+  const resetScore = useCallback(() => {
+    setScoreResult(null);
+    setFixMode(false);
+    setMarkedDeadStones([]);
+    setScoreError('');
+  }, []);
+
+  // Toggle fix territory mode
+  const toggleFixMode = useCallback(() => {
+    if (fixMode) {
+      // Exiting fix mode without calculating
+      setFixMode(false);
+      setMarkedDeadStones([]);
+      setScoreError('');
+    } else {
+      // Entering fix mode
+      setFixMode(true);
+      setScoreResult(null);
+      setScoreError('');
+    }
+  }, [fixMode]);
+
+  // Toggle a stone as dead
+  const toggleDeadStone = useCallback((position: Position) => {
+    setMarkedDeadStones(prev => {
+      const exists = prev.some(p => p.x === position.x && p.y === position.y);
+      if (exists) {
+        return prev.filter(p => p.x !== position.x || p.y !== position.y);
+      } else {
+        return [...prev, position];
+      }
+    });
+  }, []);
+
+  // Clear marked dead stones
+  const clearMarkedDeadStones = useCallback(() => {
+    setMarkedDeadStones([]);
+  }, []);
+
+  // Build the combined moves (base game + fork moves) for score calculation
+  const buildCombinedMoves = useCallback((): Move[] => {
+    if (!game) return [];
+
+    // Get base moves up to baseMoveIndex
+    const baseMoves = baseMoveIndex >= 0 ? game.moves.slice(0, baseMoveIndex + 1) : [];
+
+    // Convert fork moves to Move format
+    const forkMovesConverted: Move[] = forkMoves.slice(0, currentForkMoveIndex + 1).map(fm => ({
+      player: fm.color,
+      action: fm.position ? 'place' : 'pass',
+      position: fm.position || undefined,
+      timestamp: new Date().toISOString(),
+      capturedStones: fm.capturedStones
+    } as Move));
+
+    return [...baseMoves, ...forkMovesConverted];
+  }, [game, baseMoveIndex, forkMoves, currentForkMoveIndex]);
+
+  // Calculate score
+  const handleCalculateScore = useCallback(async () => {
+    if (!game) return;
+
+    setCalculatingScore(true);
+    setScoreError('');
+
+    try {
+      const combinedMoves = buildCombinedMoves();
+      const result = await gameService.calculateForkScore(
+        game.boardSize,
+        combinedMoves,
+        game.komi,
+        markedDeadStones
+      );
+      setScoreResult(result);
+      setFixMode(false);
+    } catch (err: any) {
+      setScoreError(err.response?.data?.error || 'Failed to calculate score');
+    } finally {
+      setCalculatingScore(false);
+    }
+  }, [game, buildCombinedMoves, markedDeadStones]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -278,7 +400,7 @@ const ForkAnalysis = () => {
 
   // Navigation
   const handleBackToAnalysis = () => {
-    navigate(`/analyze/${gameId}`);
+    navigate(`/analyze/${gameId}`, { state: { moveIndex: baseMoveIndex } });
   };
 
   if (loading) {
@@ -333,11 +455,16 @@ const ForkAnalysis = () => {
           <Board
             size={game.boardSize}
             stones={currentStones}
-            disabled={false}
+            disabled={fixMode}
             onIntersectionClick={handleIntersectionClick}
             lastMove={lastMovePosition}
-            showMoveNumbers={true}
+            showMoveNumbers={!fixMode && !scoreResult}
             moveNumberMap={moveNumberMap}
+            fixMode={fixMode}
+            markedDeadStones={markedDeadStones}
+            onStoneClick={toggleDeadStone}
+            territory={scoreResult?.territory}
+            deadStones={scoreResult?.deadStones}
           />
         </div>
 
@@ -352,7 +479,145 @@ const ForkAnalysis = () => {
             onRedo={handleRedo}
             onClearAll={handleClearAll}
             onPass={handlePass}
+            disabled={fixMode || calculatingScore}
           />
+
+          {/* Score Calculation Controls */}
+          {!scoreResult && !fixMode && (
+            <div className="score-calculation-panel">
+              <button
+                onClick={toggleFixMode}
+                className="button button-primary calculate-score-button"
+                title="Calculate the final score for this fork position"
+              >
+                Calculate Score
+              </button>
+            </div>
+          )}
+
+          {/* Fix Territory Mode */}
+          {fixMode && (
+            <div className="fix-territory-panel">
+              <div className="fix-instructions">
+                Click on stones you believe are dead (prisoners). Dead stones count toward
+                the opponent's score. Click again to unmark.
+              </div>
+
+              <div className="marked-count">
+                {markedDeadStones.length} stone{markedDeadStones.length !== 1 ? 's' : ''} marked as dead
+              </div>
+
+              {scoreError && <div className="error score-error">{scoreError}</div>}
+
+              <div className="fix-buttons">
+                <button
+                  onClick={handleCalculateScore}
+                  className="button button-primary"
+                  disabled={calculatingScore}
+                >
+                  {calculatingScore ? 'Calculating...' : 'Calculate Score'}
+                </button>
+                <button
+                  onClick={clearMarkedDeadStones}
+                  className="button button-secondary"
+                  disabled={calculatingScore || markedDeadStones.length === 0}
+                >
+                  Clear Marks
+                </button>
+                <button
+                  onClick={toggleFixMode}
+                  className="button button-secondary"
+                  disabled={calculatingScore}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Score Result Display */}
+          {scoreResult && (
+            <div className="score-result-panel">
+              <h3>Fork Score Result</h3>
+              <div className="winner-announcement">
+                {(() => {
+                  const winnerName = scoreResult.winner === 'black' ? game.blackPlayer : game.whitePlayer;
+                  const winnerColor = scoreResult.winner === 'black' ? 'Black' : 'White';
+                  if (scoreResult.score) {
+                    const margin = Math.abs(scoreResult.score.black - scoreResult.score.white);
+                    return `${winnerColor} (${winnerName}) wins by ${margin} points`;
+                  }
+                  return `${winnerColor} (${winnerName}) wins`;
+                })()}
+              </div>
+              {scoreResult.score && (
+                <div className="score-breakdown">
+                  <h4>Final Score</h4>
+                  <div className="score-row">
+                    <span className="score-label">Black ({game.blackPlayer}):</span>
+                    <span className="score-value">{scoreResult.score.black}</span>
+                  </div>
+                  <div className="score-row">
+                    <span className="score-label">White ({game.whitePlayer}):</span>
+                    <span className="score-value">{scoreResult.score.white}</span>
+                  </div>
+                  <p className="score-note">(includes {game.komi} komi for white)</p>
+                </div>
+              )}
+              {scoreResult.captures && (
+                <div className="captures-info">
+                  <h4>Captures</h4>
+                  <div>Black captured: {scoreResult.captures.black}</div>
+                  <div>White captured: {scoreResult.captures.white}</div>
+                </div>
+              )}
+              {scoreResult.deadStones && (
+                <div className="dead-stones-info">
+                  <h4>Dead Stones</h4>
+                  <div>Black dead: {scoreResult.deadStones.blackDeadStones.length}</div>
+                  <div>White dead: {scoreResult.deadStones.whiteDeadStones.length}</div>
+                </div>
+              )}
+              <button
+                onClick={resetScore}
+                className="button button-secondary reset-score-button"
+              >
+                Reset Score
+              </button>
+            </div>
+          )}
+
+          {/* Original Game Result */}
+          {game.result && game.result.method === 'score' && (
+            <div className="original-game-result-panel">
+              <h3>Original Game Result</h3>
+              <div className="winner-announcement">
+                {(() => {
+                  const winnerName = game.result.winner === 'black' ? game.blackPlayer : game.whitePlayer;
+                  const winnerColor = game.result.winner === 'black' ? 'Black' : 'White';
+                  if (game.result.score) {
+                    const margin = Math.abs(game.result.score.black - game.result.score.white);
+                    return `${winnerColor} (${winnerName}) won by ${margin} points`;
+                  }
+                  return `${winnerColor} (${winnerName}) won`;
+                })()}
+              </div>
+              {game.result.score && (
+                <div className="score-breakdown">
+                  <h4>Final Score</h4>
+                  <div className="score-row">
+                    <span className="score-label">Black ({game.blackPlayer}):</span>
+                    <span className="score-value">{game.result.score.black}</span>
+                  </div>
+                  <div className="score-row">
+                    <span className="score-label">White ({game.whitePlayer}):</span>
+                    <span className="score-value">{game.result.score.white}</span>
+                  </div>
+                  <p className="score-note">(includes {game.komi} komi for white)</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="fork-info-panel">
             <h3>Fork Info</h3>
@@ -373,6 +638,10 @@ const ForkAnalysis = () => {
             <div className="info-row">
               <span className="label">Fork moves:</span>
               <span className="value">{forkMoves.length}</span>
+            </div>
+            <div className="info-row">
+              <span className="label">Komi:</span>
+              <span className="value">{game.komi}</span>
             </div>
           </div>
 
