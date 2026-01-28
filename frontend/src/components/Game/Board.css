@@ -58,3 +58,25 @@
   pointer-events: none;
   user-select: none;
 }
+
+/* Pending move styles */
+.pending-move {
+  pointer-events: none;
+}
+
+.pending-stone {
+  animation: pending-pulse 1.5s ease-in-out infinite;
+}
+
+.pending-move-marker {
+  animation: pending-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pending-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}

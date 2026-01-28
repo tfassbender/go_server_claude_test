@@ -12,7 +12,7 @@ const CreateGame = () => {
   const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [boardSize, setBoardSize] = useState<9 | 13 | 19>(19);
-  const [requestedColor, setRequestedColor] = useState<'black' | 'white' | 'random'>('black');
+  const [requestedColor, setRequestedColor] = useState<'black' | 'white' | 'random'>('random');
   const [komi, setKomi] = useState<number>(5.5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

@@ -11,6 +11,12 @@ import GameControls from '../components/Game/GameControls';
 import FixTerritoryControls from '../components/Game/FixTerritoryControls';
 import './GamePlay.css';
 
+// Detect if the device is mobile
+const isMobileDevice = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (window.innerWidth <= 768);
+};
+
 const GamePlay = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
@@ -23,6 +29,9 @@ const GamePlay = () => {
   const [markedDeadStones, setMarkedDeadStones] = useState<Position[]>([]);
   const [recalculateLoading, setRecalculateLoading] = useState(false);
   const [recalculateError, setRecalculateError] = useState('');
+  const [pendingMove, setPendingMove] = useState<Position | null>(null);
+  const [autoSubmit, setAutoSubmit] = useState<boolean>(() => !isMobileDevice());
+  const [submitting, setSubmitting] = useState(false);
   const currentUsername = authService.getCurrentUsername();
 
   const loadGame = async () => {
@@ -77,19 +86,56 @@ const GamePlay = () => {
       return;
     }
 
+    setMoveError('');
+
+    if (autoSubmit) {
+      // Auto-submit mode: submit immediately
+      try {
+        const response = await gameService.makeMove(gameId, position);
+
+        if (response.success) {
+          await loadGame();
+        } else {
+          setMoveError(response.error || 'Invalid move');
+        }
+      } catch (err: any) {
+        setMoveError(err.response?.data?.error || 'Failed to make move');
+      }
+    } else {
+      // Manual submit mode: set pending move (or update if clicking different position)
+      if (pendingMove && pendingMove.x === position.x && pendingMove.y === position.y) {
+        // Clicking the same position cancels the pending move
+        setPendingMove(null);
+      } else {
+        setPendingMove(position);
+      }
+    }
+  };
+
+  const handleSubmitMove = async () => {
+    if (!game || !gameId || !pendingMove) return;
+
     try {
+      setSubmitting(true);
       setMoveError('');
-      const response = await gameService.makeMove(gameId, position);
+      const response = await gameService.makeMove(gameId, pendingMove);
 
       if (response.success) {
-        // Reload game to show the new move
+        setPendingMove(null);
         await loadGame();
       } else {
         setMoveError(response.error || 'Invalid move');
       }
     } catch (err: any) {
       setMoveError(err.response?.data?.error || 'Failed to make move');
+    } finally {
+      setSubmitting(false);
     }
+  };
+
+  const handleCancelPendingMove = () => {
+    setPendingMove(null);
+    setMoveError('');
   };
 
   const handlePass = async () => {
@@ -200,14 +246,54 @@ const GamePlay = () => {
             size={game.boardSize}
             stones={game.boardState?.stones || []}
             onIntersectionClick={handleIntersectionClick}
-            disabled={!isYourTurn || fixMode}
+            disabled={!isYourTurn || fixMode || submitting}
             lastMove={lastMove}
             territory={game.status === 'completed' && game.result?.territory && !fixMode ? game.result.territory : undefined}
             fixMode={fixMode}
             markedDeadStones={markedDeadStones}
             onStoneClick={toggleDeadStone}
             deadStones={game.status === 'completed' && game.result?.deadStones && !fixMode ? game.result.deadStones : undefined}
+            pendingMove={pendingMove || undefined}
+            pendingMoveColor={yourColor}
           />
+
+          {/* Submit Controls - Below Board */}
+          {game.status === 'active' && (
+            <div className="submit-controls">
+              <div className="submit-button-row">
+                <button
+                  className={`button button-primary submit-move-button${autoSubmit ? ' disabled-auto' : ''}`}
+                  onClick={handleSubmitMove}
+                  disabled={autoSubmit || !pendingMove || submitting || !isYourTurn}
+                >
+                  {submitting ? 'Submitting...' : 'Submit Move'}
+                </button>
+                {pendingMove && !autoSubmit && (
+                  <button
+                    className="button button-secondary cancel-move-button"
+                    onClick={handleCancelPendingMove}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+              <label className="auto-submit-checkbox">
+                <input
+                  type="checkbox"
+                  checked={autoSubmit}
+                  onChange={(e) => {
+                    setAutoSubmit(e.target.checked);
+                    if (e.target.checked) {
+                      setPendingMove(null);
+                    }
+                  }}
+                />
+                Auto-submit moves
+              </label>
+            </div>
+          )}
+
           {moveError && <div className="error move-error">{moveError}</div>}
         </div>
 

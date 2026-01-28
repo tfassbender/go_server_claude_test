@@ -50,3 +50,54 @@
   flex-direction: column;
   gap: 1.5rem;
 }
+
+/* Submit Controls */
+.submit-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.submit-button-row {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.submit-move-button {
+  min-width: 140px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.submit-move-button.disabled-auto {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-move-button {
+  padding: 0.75rem 1rem;
+}
+
+.auto-submit-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.auto-submit-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}

@@ -25,6 +25,8 @@ interface BoardProps {
   deadStones?: DeadStonesMarkers;
   showMoveNumbers?: boolean;
   moveNumberMap?: Map<string, number>;
+  pendingMove?: Position;
+  pendingMoveColor?: 'black' | 'white';
 }
 
 const Board = ({
@@ -39,7 +41,9 @@ const Board = ({
   onStoneClick,
   deadStones,
   showMoveNumbers = false,
-  moveNumberMap
+  moveNumberMap,
+  pendingMove,
+  pendingMoveColor
 }: BoardProps) => {
   const cellSize = 40;
   const margin = 30;
@@ -337,6 +341,28 @@ const Board = ({
               </g>
             );
           })
+        )}
+
+        {/* Pending move (semi-transparent preview) */}
+        {pendingMove && pendingMoveColor && (
+          <g className="pending-move">
+            <circle
+              cx={getCoordinate(pendingMove.x)}
+              cy={getCoordinate(pendingMove.y)}
+              r={cellSize / 2 - 2}
+              fill={pendingMoveColor === 'black' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)'}
+              stroke={pendingMoveColor === 'white' ? 'rgba(0, 0, 0, 0.6)' : 'none'}
+              strokeWidth="1"
+              className="pending-stone"
+            />
+            <circle
+              cx={getCoordinate(pendingMove.x)}
+              cy={getCoordinate(pendingMove.y)}
+              r="6"
+              fill={pendingMoveColor === 'black' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'}
+              className="pending-move-marker"
+            />
+          </g>
         )}
       </svg>
     </div>
