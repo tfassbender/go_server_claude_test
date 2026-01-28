@@ -55,7 +55,31 @@
 
 .fork-board-section {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.score-comparison-row {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 600px;
+  align-items: flex-start;
+}
+
+.score-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .score-comparison-row {
+    flex-direction: column;
+  }
 }
 
 .fork-sidebar {
@@ -117,6 +141,7 @@
 
 .calculate-score-button {
   width: 100%;
+  padding: 0.75rem 1.5rem;
 }
 
 /* Fix Territory Panel */

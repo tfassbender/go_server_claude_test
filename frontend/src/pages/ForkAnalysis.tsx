@@ -469,6 +469,110 @@ const ForkAnalysis = () => {
             territory={scoreResult?.territory}
             deadStones={scoreResult?.deadStones}
           />
+
+          {/* Score Comparison Section - Below Board */}
+          <div className="score-comparison-row">
+            {/* Original Game Result - Left Column */}
+            <div className="score-column">
+              {game.result && game.result.method === 'score' && (
+                <div className="original-game-result-panel">
+                  <h3>Original Game Result</h3>
+                  <div className="winner-announcement">
+                    {(() => {
+                      const winnerName = game.result.winner === 'black' ? game.blackPlayer : game.whitePlayer;
+                      const winnerColor = game.result.winner === 'black' ? 'Black' : 'White';
+                      if (game.result.score) {
+                        const margin = Math.abs(game.result.score.black - game.result.score.white);
+                        return `${winnerColor} (${winnerName}) won by ${margin} points`;
+                      }
+                      return `${winnerColor} (${winnerName}) won`;
+                    })()}
+                  </div>
+                  {game.result.score && (
+                    <div className="score-breakdown">
+                      <h4>Final Score</h4>
+                      <div className="score-row">
+                        <span className="score-label">Black ({game.blackPlayer}):</span>
+                        <span className="score-value">{game.result.score.black}</span>
+                      </div>
+                      <div className="score-row">
+                        <span className="score-label">White ({game.whitePlayer}):</span>
+                        <span className="score-value">{game.result.score.white}</span>
+                      </div>
+                      <p className="score-note">(includes {game.komi} komi for white)</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Calculate Score Button - Below Original Result */}
+              {!scoreResult && !fixMode && (
+                <div className="score-calculation-panel">
+                  <button
+                    onClick={toggleFixMode}
+                    className="button button-primary calculate-score-button"
+                    title="Calculate the final score for this fork position"
+                  >
+                    Calculate Score
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Fork Score Result - Right Column */}
+            {scoreResult && (
+              <div className="score-column">
+                <div className="score-result-panel">
+                  <h3>Fork Score Result</h3>
+                  <div className="winner-announcement">
+                    {(() => {
+                      const winnerName = scoreResult.winner === 'black' ? game.blackPlayer : game.whitePlayer;
+                      const winnerColor = scoreResult.winner === 'black' ? 'Black' : 'White';
+                      if (scoreResult.score) {
+                        const margin = Math.abs(scoreResult.score.black - scoreResult.score.white);
+                        return `${winnerColor} (${winnerName}) wins by ${margin} points`;
+                      }
+                      return `${winnerColor} (${winnerName}) wins`;
+                    })()}
+                  </div>
+                  {scoreResult.score && (
+                    <div className="score-breakdown">
+                      <h4>Final Score</h4>
+                      <div className="score-row">
+                        <span className="score-label">Black ({game.blackPlayer}):</span>
+                        <span className="score-value">{scoreResult.score.black}</span>
+                      </div>
+                      <div className="score-row">
+                        <span className="score-label">White ({game.whitePlayer}):</span>
+                        <span className="score-value">{scoreResult.score.white}</span>
+                      </div>
+                      <p className="score-note">(includes {game.komi} komi for white)</p>
+                    </div>
+                  )}
+                  {scoreResult.captures && (
+                    <div className="captures-info">
+                      <h4>Captures</h4>
+                      <div>Black captured: {scoreResult.captures.black}</div>
+                      <div>White captured: {scoreResult.captures.white}</div>
+                    </div>
+                  )}
+                  {scoreResult.deadStones && (
+                    <div className="dead-stones-info">
+                      <h4>Dead Stones</h4>
+                      <div>Black dead: {scoreResult.deadStones.blackDeadStones.length}</div>
+                      <div>White dead: {scoreResult.deadStones.whiteDeadStones.length}</div>
+                    </div>
+                  )}
+                  <button
+                    onClick={resetScore}
+                    className="button button-secondary reset-score-button"
+                  >
+                    Reset Score
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="fork-sidebar">
@@ -486,19 +590,6 @@ const ForkAnalysis = () => {
             showMoveNumbers={showMoveNumbers}
             onShowMoveNumbersChange={setShowMoveNumbers}
           />
-
-          {/* Score Calculation Controls */}
-          {!scoreResult && !fixMode && (
-            <div className="score-calculation-panel">
-              <button
-                onClick={toggleFixMode}
-                className="button button-primary calculate-score-button"
-                title="Calculate the final score for this fork position"
-              >
-                Calculate Score
-              </button>
-            </div>
-          )}
 
           {/* Fix Territory Mode */}
           {fixMode && (
@@ -537,90 +628,6 @@ const ForkAnalysis = () => {
                   Cancel
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* Score Result Display */}
-          {scoreResult && (
-            <div className="score-result-panel">
-              <h3>Fork Score Result</h3>
-              <div className="winner-announcement">
-                {(() => {
-                  const winnerName = scoreResult.winner === 'black' ? game.blackPlayer : game.whitePlayer;
-                  const winnerColor = scoreResult.winner === 'black' ? 'Black' : 'White';
-                  if (scoreResult.score) {
-                    const margin = Math.abs(scoreResult.score.black - scoreResult.score.white);
-                    return `${winnerColor} (${winnerName}) wins by ${margin} points`;
-                  }
-                  return `${winnerColor} (${winnerName}) wins`;
-                })()}
-              </div>
-              {scoreResult.score && (
-                <div className="score-breakdown">
-                  <h4>Final Score</h4>
-                  <div className="score-row">
-                    <span className="score-label">Black ({game.blackPlayer}):</span>
-                    <span className="score-value">{scoreResult.score.black}</span>
-                  </div>
-                  <div className="score-row">
-                    <span className="score-label">White ({game.whitePlayer}):</span>
-                    <span className="score-value">{scoreResult.score.white}</span>
-                  </div>
-                  <p className="score-note">(includes {game.komi} komi for white)</p>
-                </div>
-              )}
-              {scoreResult.captures && (
-                <div className="captures-info">
-                  <h4>Captures</h4>
-                  <div>Black captured: {scoreResult.captures.black}</div>
-                  <div>White captured: {scoreResult.captures.white}</div>
-                </div>
-              )}
-              {scoreResult.deadStones && (
-                <div className="dead-stones-info">
-                  <h4>Dead Stones</h4>
-                  <div>Black dead: {scoreResult.deadStones.blackDeadStones.length}</div>
-                  <div>White dead: {scoreResult.deadStones.whiteDeadStones.length}</div>
-                </div>
-              )}
-              <button
-                onClick={resetScore}
-                className="button button-secondary reset-score-button"
-              >
-                Reset Score
-              </button>
-            </div>
-          )}
-
-          {/* Original Game Result */}
-          {game.result && game.result.method === 'score' && (
-            <div className="original-game-result-panel">
-              <h3>Original Game Result</h3>
-              <div className="winner-announcement">
-                {(() => {
-                  const winnerName = game.result.winner === 'black' ? game.blackPlayer : game.whitePlayer;
-                  const winnerColor = game.result.winner === 'black' ? 'Black' : 'White';
-                  if (game.result.score) {
-                    const margin = Math.abs(game.result.score.black - game.result.score.white);
-                    return `${winnerColor} (${winnerName}) won by ${margin} points`;
-                  }
-                  return `${winnerColor} (${winnerName}) won`;
-                })()}
-              </div>
-              {game.result.score && (
-                <div className="score-breakdown">
-                  <h4>Final Score</h4>
-                  <div className="score-row">
-                    <span className="score-label">Black ({game.blackPlayer}):</span>
-                    <span className="score-value">{game.result.score.black}</span>
-                  </div>
-                  <div className="score-row">
-                    <span className="score-label">White ({game.whitePlayer}):</span>
-                    <span className="score-value">{game.result.score.white}</span>
-                  </div>
-                  <p className="score-note">(includes {game.komi} komi for white)</p>
-                </div>
-              )}
             </div>
           )}
 
