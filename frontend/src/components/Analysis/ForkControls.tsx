@@ -12,6 +12,8 @@ interface ForkControlsProps {
   onClearAll: () => void;
   onPass: () => void;
   disabled?: boolean;
+  showMoveNumbers: boolean;
+  onShowMoveNumbersChange: (show: boolean) => void;
 }
 
 const ForkControls = ({
@@ -25,6 +27,8 @@ const ForkControls = ({
   onClearAll,
   onPass,
   disabled = false,
+  showMoveNumbers,
+  onShowMoveNumbersChange,
 }: ForkControlsProps) => {
   const displayMoveNumber = currentForkMoveIndex + 1;
 
@@ -81,6 +85,17 @@ const ForkControls = ({
             Clear All
           </button>
         </div>
+      </div>
+
+      <div className="options-row">
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={showMoveNumbers}
+            onChange={(e) => onShowMoveNumbersChange(e.target.checked)}
+          />
+          Show move numbers
+        </label>
       </div>
 
       <div className="fork-hints">

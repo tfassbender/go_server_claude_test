@@ -40,6 +40,9 @@ const ForkAnalysis = () => {
   const [currentForkMoveIndex, setCurrentForkMoveIndex] = useState<number>(-1);
   const [moveError, setMoveError] = useState<string>('');
 
+  // Display options
+  const [showMoveNumbers, setShowMoveNumbers] = useState<boolean>(true);
+
   // Score calculation state
   const [scoreResult, setScoreResult] = useState<GameResult | null>(null);
   const [fixMode, setFixMode] = useState<boolean>(false);
@@ -458,7 +461,7 @@ const ForkAnalysis = () => {
             disabled={fixMode}
             onIntersectionClick={handleIntersectionClick}
             lastMove={lastMovePosition}
-            showMoveNumbers={!fixMode && !scoreResult}
+            showMoveNumbers={showMoveNumbers && !fixMode && !scoreResult}
             moveNumberMap={moveNumberMap}
             fixMode={fixMode}
             markedDeadStones={markedDeadStones}
@@ -480,6 +483,8 @@ const ForkAnalysis = () => {
             onClearAll={handleClearAll}
             onPass={handlePass}
             disabled={fixMode || calculatingScore}
+            showMoveNumbers={showMoveNumbers}
+            onShowMoveNumbersChange={setShowMoveNumbers}
           />
 
           {/* Score Calculation Controls */}
