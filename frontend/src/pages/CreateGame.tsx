@@ -6,9 +6,11 @@ import './CreateGame.css';
 
 const CreateGame = () => {
   const navigate = useNavigate();
+  const [opponentType, setOpponentType] = useState<'human' | 'ai'>('human');
   const [opponentUsername, setOpponentUsername] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<string[]>([]);
+  const [aiBots, setAiBots] = useState<string[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [boardSize, setBoardSize] = useState<9 | 13 | 19>(19);
@@ -18,18 +20,22 @@ const CreateGame = () => {
   const [error, setError] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load users on mount
+  // Load users and AI bots on mount
   useEffect(() => {
-    const loadUsers = async () => {
+    const loadData = async () => {
       try {
-        const allUsers = await userService.searchUsers();
+        const [allUsers, allBots] = await Promise.all([
+          userService.searchUsers(),
+          userService.getAiBots()
+        ]);
         setUsers(allUsers);
         setFilteredUsers(allUsers);
+        setAiBots(allBots);
       } catch (err) {
         console.error('Failed to load users:', err);
       }
     };
-    loadUsers();
+    loadData();
   }, []);
 
   // Filter users when search query changes
@@ -63,11 +69,18 @@ const CreateGame = () => {
     setShowDropdown(true);
   };
 
+  const handleOpponentTypeChange = (type: 'human' | 'ai') => {
+    setOpponentType(type);
+    setOpponentUsername('');
+    setSearchQuery('');
+    setShowDropdown(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!opponentUsername) {
-      setError('Please select an opponent from the list');
+      setError('Please select an opponent');
       return;
     }
 
@@ -82,12 +95,25 @@ const CreateGame = () => {
         komi
       });
 
-      // Redirect to lobby with pending tab since the game needs to be accepted first
-      navigate('/lobby?tab=pending');
+      // Redirect to lobby - AI games go to active (auto-accepted), human games go to pending
+      const tab = opponentType === 'ai' ? 'active' : 'pending';
+      navigate(`/lobby?tab=${tab}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create game');
       setLoading(false);
     }
+  };
+
+  // Format bot username for display
+  const formatBotName = (botUsername: string): string => {
+    // Remove "GnuGo-" prefix and format with descriptions
+    const difficulty = botUsername.replace('GnuGo-', '');
+    if (difficulty === 'Easy') return 'Easy (15-20 kyu)';
+    if (difficulty === 'Casual') return 'Casual (12-15 kyu)';
+    if (difficulty === 'Medium') return 'Medium (10-12 kyu)';
+    if (difficulty === 'Hard') return 'Hard (8-10 kyu)';
+    if (difficulty === 'Max') return 'Maximum (5-8 kyu)';
+    return difficulty;
   };
 
   return (
@@ -98,37 +124,90 @@ const CreateGame = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="input-group">
-              <label htmlFor="opponent">Opponent</label>
-              <div className="user-search-dropdown" ref={dropdownRef}>
-                <input
+              <label>Opponent Type</label>
+              <div className="opponent-type-toggle">
+                <label className="opponent-type-option">
+                  <input
+                    type="radio"
+                    value="human"
+                    checked={opponentType === 'human'}
+                    onChange={() => handleOpponentTypeChange('human')}
+                    disabled={loading}
+                  />
+                  <div className="opponent-type-card">
+                    <div className="opponent-type-icon">👤</div>
+                    <div className="opponent-type-label">Human Player</div>
+                    <div className="opponent-type-description">Play against another person</div>
+                  </div>
+                </label>
+                <label className="opponent-type-option">
+                  <input
+                    type="radio"
+                    value="ai"
+                    checked={opponentType === 'ai'}
+                    onChange={() => handleOpponentTypeChange('ai')}
+                    disabled={loading}
+                  />
+                  <div className="opponent-type-card">
+                    <div className="opponent-type-icon">🤖</div>
+                    <div className="opponent-type-label">AI Opponent</div>
+                    <div className="opponent-type-description">Play against computer</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="opponent">
+                {opponentType === 'human' ? 'Select Human Opponent' : 'Select AI Difficulty'}
+              </label>
+              {opponentType === 'human' ? (
+                <div className="user-search-dropdown" ref={dropdownRef}>
+                  <input
+                    id="opponent"
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onFocus={() => setShowDropdown(true)}
+                    required
+                    disabled={loading}
+                    placeholder="Search for opponent..."
+                    autoComplete="off"
+                  />
+                  {showDropdown && filteredUsers.length > 0 && (
+                    <ul className="dropdown-list">
+                      {filteredUsers.map(user => (
+                        <li
+                          key={user}
+                          onClick={() => handleSelectUser(user)}
+                          className={user === opponentUsername ? 'selected' : ''}
+                        >
+                          {user}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {showDropdown && searchQuery && filteredUsers.length === 0 && (
+                    <div className="dropdown-empty">No users found</div>
+                  )}
+                </div>
+              ) : (
+                <select
                   id="opponent"
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onFocus={() => setShowDropdown(true)}
+                  value={opponentUsername}
+                  onChange={(e) => setOpponentUsername(e.target.value)}
                   required
                   disabled={loading}
-                  placeholder="Search for opponent..."
-                  autoComplete="off"
-                />
-                {showDropdown && filteredUsers.length > 0 && (
-                  <ul className="dropdown-list">
-                    {filteredUsers.map(user => (
-                      <li
-                        key={user}
-                        onClick={() => handleSelectUser(user)}
-                        className={user === opponentUsername ? 'selected' : ''}
-                      >
-                        {user}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {showDropdown && searchQuery && filteredUsers.length === 0 && (
-                  <div className="dropdown-empty">No users found</div>
-                )}
-              </div>
-              {opponentUsername && (
+                >
+                  <option value="">-- Select Difficulty --</option>
+                  {aiBots.map(bot => (
+                    <option key={bot} value={bot}>
+                      {formatBotName(bot)}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {opponentUsername && opponentType === 'human' && (
                 <div className="selected-opponent">
                   Selected: <strong>{opponentUsername}</strong>
                 </div>

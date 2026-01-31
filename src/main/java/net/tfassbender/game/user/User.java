@@ -13,6 +13,7 @@ public class User {
 
     public Instant createdAt;
     public UserStatistics statistics;
+    public boolean isBot = false;
 
     public User() {
         this.statistics = new UserStatistics();

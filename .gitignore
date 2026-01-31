@@ -30,6 +30,9 @@ bin/
 # Data directory
 data/
 
+# AI engines - binaries and models are too large for git
+/ai/
+
 # Node/NPM
 frontend/node_modules/
 frontend/dist/

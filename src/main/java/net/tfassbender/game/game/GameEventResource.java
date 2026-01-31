@@ -62,8 +62,8 @@ public class GameEventResource {
             return;
         }
 
-        // Register connection
-        eventService.registerConnection(gameId, eventSink);
+        // Register connection (also stores Sse instance for AI move broadcasts)
+        eventService.registerConnection(gameId, eventSink, sse);
         LOG.info("SSE stream opened for game {} by user {}", gameId, username);
 
         // Send initial connection event and handle connection lifecycle

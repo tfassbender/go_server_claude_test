@@ -7,8 +7,10 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import net.tfassbender.game.ai.GnuGoService;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +28,13 @@ public class UserResource {
     UserRepository userRepository;
 
     @Inject
+    GnuGoService gnuGoService;
+
+    @Inject
     JsonWebToken jwt;
 
     /**
-     * Search users by username
+     * Search users by username (excludes bots)
      */
     @GET
     @Path("/search")
@@ -38,8 +43,23 @@ public class UserResource {
         String currentUser = jwt.getName();
         List<String> usernames = userRepository.findAllUsernames(query).stream()
                 .filter(username -> !username.equals(currentUser)) // Exclude current user
+                .filter(username -> !gnuGoService.isAiBot(username)) // Exclude AI bots
                 .toList();
         return Response.ok(Map.of("users", usernames)).build();
+    }
+
+    /**
+     * Get list of AI bot usernames sorted by difficulty (easiest to hardest)
+     */
+    @GET
+    @Path("/bots")
+    @RolesAllowed("User")
+    public Response getAiBots() {
+        Map<String, Integer> botDifficulties = gnuGoService.getBotDifficulties();
+        List<String> botUsernames = new ArrayList<>(botDifficulties.keySet());
+        // Sort by difficulty level (lower level = easier)
+        botUsernames.sort((a, b) -> botDifficulties.get(a).compareTo(botDifficulties.get(b)));
+        return Response.ok(Map.of("bots", botUsernames)).build();
     }
 
     /**

@@ -28,6 +28,9 @@ dependencies {
     // JSON Processing
     implementation 'io.quarkus:quarkus-jackson'
 
+    // Scheduler (for AI health monitoring)
+    implementation 'io.quarkus:quarkus-scheduler'
+
     // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
@@ -76,3 +79,6 @@ task buildFrontend(type: Exec) {
 
 // Make processResources depend on frontend build
 processResources.dependsOn buildFrontend
+
+// Note: GNU Go starts automatically with the server (see GtpClient.java)
+// No separate startup task needed

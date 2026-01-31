@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 @ApplicationScoped
 public class GameEventService {
@@ -24,10 +25,16 @@ public class GameEventService {
     // Map of gameId -> list of SSE connections
     private final Map<String, CopyOnWriteArrayList<SseEventSink>> connections = new ConcurrentHashMap<>();
 
+    // Store the Sse instance for use when broadcasting from non-REST contexts (e.g., AI moves)
+    private final AtomicReference<Sse> sseInstance = new AtomicReference<>();
+
     /**
      * Register a new SSE connection for a game
      */
-    public void registerConnection(String gameId, SseEventSink eventSink) {
+    public void registerConnection(String gameId, SseEventSink eventSink, Sse sse) {
+        // Store the Sse instance for later use (e.g., AI moves)
+        sseInstance.compareAndSet(null, sse);
+
         connections.computeIfAbsent(gameId, k -> new CopyOnWriteArrayList<>()).add(eventSink);
         LOG.info("SSE connection registered for game {} (total: {})", gameId, connections.get(gameId).size());
     }
@@ -44,6 +51,19 @@ public class GameEventService {
             }
             LOG.info("SSE connection unregistered for game {}", gameId);
         }
+    }
+
+    /**
+     * Broadcast an event to all connections for a game (uses stored Sse instance)
+     * This is used when broadcasting from non-REST contexts like AI moves.
+     */
+    public void broadcastEvent(String gameId, String eventType, Object data) {
+        Sse sse = sseInstance.get();
+        if (sse == null) {
+            LOG.warn("Cannot broadcast event: no Sse instance available. Has any client connected yet?");
+            return;
+        }
+        broadcastEvent(gameId, eventType, data, sse);
     }
 
     /**

@@ -1,5 +1,7 @@
 package net.tfassbender.game.game;
 
+import net.tfassbender.game.game.events.GameCreatedEvent;
+import net.tfassbender.game.game.events.TurnChangedEvent;
 import net.tfassbender.game.go.Board;
 import net.tfassbender.game.go.GoRulesEngine;
 import net.tfassbender.game.go.Position;
@@ -7,6 +9,7 @@ import net.tfassbender.game.go.ScoringEngine;
 import net.tfassbender.game.go.Stone;
 import net.tfassbender.game.user.UserService;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,12 @@ public class GameService {
 
     @Inject
     ScoringEngine scoringEngine;
+
+    @Inject
+    Event<GameCreatedEvent> gameCreatedEvent;
+
+    @Inject
+    Event<TurnChangedEvent> turnChangedEvent;
 
     /**
      * Create a new game
@@ -77,6 +86,10 @@ public class GameService {
         gameRepository.save(game);
 
         LOG.info("Created game {}: {} (black) vs {} (white)", game.id, blackPlayer, whitePlayer);
+
+        // Fire game created event
+        gameCreatedEvent.fire(new GameCreatedEvent(game.id));
+
         return game;
     }
 
@@ -111,6 +124,10 @@ public class GameService {
         gameRepository.moveGameFile(game, oldStatus);
 
         LOG.info("Game {} accepted by {}", gameId, username);
+
+        // Fire turn changed event (game just started, black's turn)
+        turnChangedEvent.fire(new TurnChangedEvent(game.id, game.currentTurn));
+
         return game;
     }
 
@@ -198,6 +215,10 @@ public class GameService {
         gameRepository.save(game);
 
         LOG.info("Move made in game {} by {} at {}", gameId, username, position);
+
+        // Fire turn changed event
+        turnChangedEvent.fire(new TurnChangedEvent(game.id, game.currentTurn));
+
         return new MoveResponse(true, result.capturedStones, game.currentTurn);
     }
 
@@ -230,8 +251,10 @@ public class GameService {
         game.koBlockedHash = null;
 
         // Switch turn if game is still active
+        boolean turnSwitched = false;
         if ("active".equals(game.status)) {
             game.switchTurn();
+            turnSwitched = true;
         }
 
         // Save game (might have changed to completed if 2 passes)
@@ -275,6 +298,11 @@ public class GameService {
         }
 
         LOG.info("Pass in game {} by {} (passes: {})", gameId, username, game.passes);
+
+        // Fire turn changed event if turn switched
+        if (turnSwitched) {
+            turnChangedEvent.fire(new TurnChangedEvent(game.id, game.currentTurn));
+        }
     }
 
     /**

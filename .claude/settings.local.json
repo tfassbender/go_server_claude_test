@@ -64,7 +64,13 @@
       "Bash(npx vite build)",
       "Bash(npx vite build:*)",
       "Bash(cmd /c \"dir data\\\\games\\\\completed\")",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "WebFetch(domain:senseis.xmp.net)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gnugo.exe:*)",
+      "Bash(tee:*)",
+      "Bash(ls:*)",
+      "Bash(./gradlew:*)"
     ]
   }
 }
