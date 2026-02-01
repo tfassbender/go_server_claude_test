@@ -162,6 +162,18 @@ const GamePlay = () => {
     }
   };
 
+  const handleUndo = async () => {
+    if (!gameId) return;
+
+    try {
+      setMoveError('');
+      await gameService.undoMove(gameId);
+      await loadGame();
+    } catch (err: any) {
+      setMoveError(err.response?.data?.error || 'Failed to undo move');
+    }
+  };
+
   const toggleFixMode = () => {
     setFixMode(!fixMode);
     setMarkedDeadStones([]);
@@ -303,6 +315,8 @@ const GamePlay = () => {
             <GameControls
               onPass={handlePass}
               onResign={handleResign}
+              onUndo={handleUndo}
+              allowUndo={game.allowUndo}
               disabled={!isYourTurn}
             />
           )}

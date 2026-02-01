@@ -40,10 +40,13 @@ public class GameService {
     @Inject
     Event<TurnChangedEvent> turnChangedEvent;
 
+    @Inject
+    net.tfassbender.game.ai.GnuGoService gnuGoService;
+
     /**
      * Create a new game
      */
-    public Game createGame(String creatorUsername, int boardSize, String opponentUsername, String requestedColor, double komi) throws IOException {
+    public Game createGame(String creatorUsername, int boardSize, String opponentUsername, String requestedColor, double komi, boolean allowUndo) throws IOException {
         // Validate board size
         if (boardSize != 9 && boardSize != 13 && boardSize != 19) {
             throw new IllegalArgumentException("Board size must be 9, 13, or 19");
@@ -83,6 +86,7 @@ public class GameService {
         // Create game
         Game game = new Game(boardSize, blackPlayer, whitePlayer, komi);
         game.createdBy = creatorUsername;
+        game.allowUndo = allowUndo;
         gameRepository.save(game);
 
         LOG.info("Created game {}: {} (black) vs {} (white)", game.id, blackPlayer, whitePlayer);
@@ -344,6 +348,116 @@ public class GameService {
 
         LOG.info("Game {}: {} resigned, {} wins", gameId, username, winnerUsername);
         return game.result;
+    }
+
+    /**
+     * Undo the last move(s) in a game
+     * Removes the last user move and the last AI move (if AI moved after the user)
+     */
+    public void undoMove(String gameId, String username) throws IOException {
+        Optional<Game> gameOpt = gameRepository.findById(gameId);
+        if (gameOpt.isEmpty()) {
+            throw new IllegalArgumentException("Game not found");
+        }
+
+        Game game = gameOpt.get();
+
+        // Validate game is active
+        if (!"active".equals(game.status)) {
+            throw new IllegalArgumentException("Game is not active");
+        }
+
+        // Validate user is a player
+        if (!game.isPlayer(username)) {
+            throw new IllegalArgumentException("You are not a player in this game");
+        }
+
+        // Validate undo is allowed for this game
+        if (!game.allowUndo) {
+            throw new IllegalArgumentException("Undo is not allowed for this game");
+        }
+
+        // Validate at least one player is an AI
+        boolean isAiGame = gnuGoService.isAiBot(game.blackPlayer) || gnuGoService.isAiBot(game.whitePlayer);
+        if (!isAiGame) {
+            throw new IllegalArgumentException("Undo is only allowed in AI games");
+        }
+
+        // Validate there are moves to undo
+        if (game.moves.isEmpty()) {
+            throw new IllegalArgumentException("No moves to undo");
+        }
+
+        // Determine opponent
+        String opponent = username.equals(game.blackPlayer) ? game.whitePlayer : game.blackPlayer;
+        boolean opponentIsAi = gnuGoService.isAiBot(opponent);
+
+        // Remove last move(s)
+        int movesToRemove = 1; // At minimum, remove the last user move
+
+        // If opponent is AI and made the last move, remove it as well
+        if (opponentIsAi && !game.moves.isEmpty()) {
+            Move lastMove = game.moves.get(game.moves.size() - 1);
+            String lastMovePlayer = lastMove.player.equals("black") ? game.blackPlayer : game.whitePlayer;
+
+            if (lastMovePlayer.equals(opponent)) {
+                movesToRemove = 2; // Remove both AI move and user move before it
+            }
+        }
+
+        // Ensure we don't remove more moves than exist
+        movesToRemove = Math.min(movesToRemove, game.moves.size());
+
+        // Remove the moves
+        for (int i = 0; i < movesToRemove; i++) {
+            game.moves.remove(game.moves.size() - 1);
+        }
+
+        // Recalculate game state
+        // Reset pass counter
+        int consecutivePasses = 0;
+        for (int i = game.moves.size() - 1; i >= 0 && consecutivePasses < 2; i--) {
+            Move move = game.moves.get(i);
+            if ("pass".equals(move.action)) {
+                consecutivePasses++;
+            } else {
+                break;
+            }
+        }
+        game.passes = consecutivePasses;
+
+        // Recalculate current turn based on move count
+        // Black starts, so odd number of moves = white's turn, even = black's turn
+        game.currentTurn = (game.moves.size() % 2 == 0) ? "black" : "white";
+
+        // Recalculate Ko blocked hash
+        if (game.moves.size() >= 2) {
+            // Reconstruct board before the last move to get Ko hash
+            List<GoRulesEngine.MoveData> movesUpToSecondLast = new ArrayList<>();
+            for (int i = 0; i < game.moves.size() - 1; i++) {
+                Move move = game.moves.get(i);
+                if ("place".equals(move.action)) {
+                    movesUpToSecondLast.add(new GoRulesEngine.MoveData(move.player, move.action, move.position));
+                }
+            }
+            Board boardBeforeLastMove = rulesEngine.reconstructBoard(game.boardSize, movesUpToSecondLast);
+            game.koBlockedHash = boardBeforeLastMove.getBoardHash();
+        } else {
+            game.koBlockedHash = null;
+        }
+
+        // Update last move timestamp
+        if (!game.moves.isEmpty()) {
+            game.lastMoveAt = game.moves.get(game.moves.size() - 1).timestamp;
+        } else {
+            game.lastMoveAt = game.createdAt;
+        }
+
+        // Save game
+        gameRepository.save(game);
+
+        LOG.info("Undo in game {} by {}: removed {} move(s), current turn: {}",
+                gameId, username, movesToRemove, game.currentTurn);
     }
 
     /**

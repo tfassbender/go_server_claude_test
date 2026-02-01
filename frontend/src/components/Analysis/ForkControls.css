@@ -43,6 +43,38 @@
   color: #333;
 }
 
+.consecutive-passes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fff9e6;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.passes-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.passes-count {
+  font-weight: 700;
+  color: #ff9800;
+}
+
+.passes-count.ended {
+  color: #dc3545;
+}
+
+.game-ended-text {
+  margin-left: auto;
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .fork-move-counter {
   text-align: center;
   color: #555;
@@ -159,4 +191,61 @@
 
 .hint-desc {
   color: #555;
+}
+
+/* AI Section */
+.ai-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f0f8ff;
+  border: 1px solid #4a90e2;
+  border-radius: 6px;
+  margin-top: 0.25rem;
+}
+
+.ai-section-title {
+  font-weight: 600;
+  color: #2c5aa0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.ai-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ai-level-label {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.ai-level-select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.ai-level-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-move-button {
+  background: #4a90e2;
+  color: #fff;
+  border-color: #4a90e2;
+  font-weight: 600;
+}
+
+.ai-move-button:hover:not(:disabled) {
+  background: #357abd;
+  border-color: #357abd;
 }

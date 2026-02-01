@@ -8,6 +8,7 @@ export interface CreateGameRequest {
   opponentUsername: string;
   requestedColor: 'black' | 'white' | 'random';
   komi: number;
+  allowUndo?: boolean;
 }
 
 export interface MoveRequest {
@@ -63,6 +64,10 @@ const gameService = {
     await apiClient.post(`/games/${gameId}/resign`);
   },
 
+  async undoMove(gameId: string): Promise<void> {
+    await apiClient.post(`/games/${gameId}/undo`);
+  },
+
   async recalculateScore(gameId: string, manuallyMarkedDeadStones: Position[]): Promise<GameResult> {
     const response = await apiClient.post<GameResult>(
       `/games/${gameId}/recalculate-score`,
@@ -80,6 +85,20 @@ const gameService = {
     const response = await apiClient.post<GameResult>(
       '/games/calculate-fork-score',
       { boardSize, moves, komi, manuallyMarkedDeadStones }
+    );
+    return response.data;
+  },
+
+  async getAiMoveSuggestion(
+    boardSize: number,
+    moves: Move[],
+    komi: number,
+    level: number,
+    colorToMove: 'black' | 'white'
+  ): Promise<{ success: boolean; position: Position | null; isPass: boolean }> {
+    const response = await apiClient.post<{ success: boolean; position: Position | null; isPass: boolean }>(
+      '/games/ai-move-suggestion',
+      { boardSize, moves, komi, level, colorToMove }
     );
     return response.data;
   }

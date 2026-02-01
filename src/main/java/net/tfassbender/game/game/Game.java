@@ -20,6 +20,7 @@ public class Game {
     public GameResult result;
     public String koBlockedHash; // Board state that is blocked by Ko rule (state before last move)
     public double komi;              // Compensation points for white (default 5.5)
+    public boolean allowUndo;        // Whether players can undo moves (AI games only)
 
     public Game() {
         this.id = UUID.randomUUID().toString();

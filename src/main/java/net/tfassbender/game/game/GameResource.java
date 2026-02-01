@@ -32,6 +32,9 @@ public class GameResource {
     @Inject
     JsonWebToken jwt;
 
+    @Inject
+    net.tfassbender.game.ai.GnuGoService gnuGoService;
+
     @jakarta.ws.rs.core.Context
     jakarta.ws.rs.sse.Sse sse;
 
@@ -48,7 +51,8 @@ public class GameResource {
                     request.boardSize,
                     request.opponentUsername,
                     request.requestedColor,
-                    request.komi
+                    request.komi,
+                    request.allowUndo
             );
 
             Map<String, Object> response = new HashMap<>();
@@ -158,6 +162,7 @@ public class GameResource {
             response.put("result", game.result);
             response.put("boardState", Map.of("stones", stones));
             response.put("komi", game.komi);
+            response.put("allowUndo", game.allowUndo);
 
             return Response.ok(response).build();
 
@@ -361,6 +366,45 @@ public class GameResource {
     }
 
     /**
+     * Undo the last move(s) in a game
+     */
+    @POST
+    @Path("/{gameId}/undo")
+    public Response undoMove(@PathParam("gameId") String gameId) {
+        try {
+            String username = jwt.getName();
+            gameService.undoMove(gameId, username);
+
+            Optional<Game> gameOpt = gameService.getGame(gameId);
+            Game game = gameOpt.get();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("currentTurn", game.currentTurn);
+            response.put("movesCount", game.moves.size());
+
+            // Broadcast undo event to SSE clients
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("currentTurn", game.currentTurn);
+            eventData.put("movesCount", game.moves.size());
+            eventService.broadcastEvent(gameId, "undo", eventData, sse);
+
+            return Response.ok(response).build();
+
+        } catch (IllegalArgumentException e) {
+            LOG.debug("Undo failed: {}", e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("success", false, "error", e.getMessage()))
+                    .build();
+        } catch (Exception e) {
+            LOG.error("Error undoing move in game {}", gameId, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("success", false, "error", "Failed to undo move"))
+                    .build();
+        }
+    }
+
+    /**
      * Recalculate score with manually marked dead stones
      */
     @POST
@@ -443,12 +487,66 @@ public class GameResource {
         }
     }
 
+    /**
+     * Get AI move suggestion for a given board position.
+     * This is used in the fork/analysis tool to get AI suggestions.
+     */
+    @POST
+    @Path("/ai-move-suggestion")
+    public Response getAiMoveSuggestion(AiMoveSuggestionRequest request) {
+        try {
+            if (request.boardSize != 9 && request.boardSize != 13 && request.boardSize != 19) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "Board size must be 9, 13, or 19"))
+                        .build();
+            }
+
+            if (request.level < 1 || request.level > 10) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "AI level must be between 1 and 10"))
+                        .build();
+            }
+
+            if (request.moves == null) {
+                request.moves = new ArrayList<>();
+            }
+
+            if (!"black".equals(request.colorToMove) && !"white".equals(request.colorToMove)) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "colorToMove must be 'black' or 'white'"))
+                        .build();
+            }
+
+            Position suggestedMove = gnuGoService.generateMoveForPosition(
+                    request.boardSize,
+                    request.moves,
+                    request.level,
+                    request.colorToMove,
+                    request.komi
+            );
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("position", suggestedMove);
+            response.put("isPass", suggestedMove == null);
+
+            return Response.ok(response).build();
+
+        } catch (Exception e) {
+            LOG.error("Error generating AI move suggestion", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Failed to generate AI move suggestion"))
+                    .build();
+        }
+    }
+
     // Request DTOs
     public static class CreateGameRequest {
         public int boardSize;
         public String opponentUsername;
         public String requestedColor;
         public double komi = 5.5;  // Default komi
+        public boolean allowUndo = false;  // Default false
     }
 
     public static class MoveRequest {
@@ -465,5 +563,13 @@ public class GameResource {
         public List<Move> moves;
         public double komi = 5.5;
         public List<Position> manuallyMarkedDeadStones;
+    }
+
+    public static class AiMoveSuggestionRequest {
+        public int boardSize;
+        public List<Move> moves;
+        public double komi = 5.5;
+        public int level;  // AI difficulty level (1-10)
+        public String colorToMove;  // "black" or "white"
     }
 }

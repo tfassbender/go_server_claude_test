@@ -214,6 +214,72 @@ public class GnuGoService {
     }
 
     /**
+     * Generates an AI move suggestion for a given board position.
+     * This is used for analysis/fork mode where we want AI suggestions for any position.
+     *
+     * @param boardSize The size of the board (9, 13, or 19)
+     * @param moves The list of moves that define the current position
+     * @param level The AI difficulty level (1-10)
+     * @param colorToMove The color that should make the next move ("black" or "white")
+     * @param komi The komi value
+     * @return The suggested position, or null if AI suggests passing
+     */
+    public Position generateMoveForPosition(int boardSize, java.util.List<Move> moves, int level, String colorToMove, double komi) {
+        if (!gnugoEnabled) {
+            LOG.warn("GNU Go is disabled, cannot generate move suggestion");
+            return null;
+        }
+
+        try {
+            // 1. Clear and set up the board
+            gtpClient.sendCommand("clear_board");
+            gtpClient.sendCommand("boardsize " + boardSize);
+            gtpClient.sendCommand("komi " + komi);
+
+            // 2. Replay all moves to reach the desired position
+            for (Move move : moves) {
+                if ("place".equals(move.action) && move.position != null) {
+                    String gtpMove = positionToGtp(move.position, boardSize);
+                    String command = "play " + move.player + " " + gtpMove;
+                    GtpResponse response = gtpClient.sendCommand(command);
+                    if (!response.isSuccess()) {
+                        LOG.warn("Failed to sync move {}: {}", gtpMove, response.getError());
+                    }
+                } else if ("pass".equals(move.action)) {
+                    String command = "play " + move.player + " pass";
+                    gtpClient.sendCommand(command);
+                }
+            }
+
+            // 3. Set difficulty level
+            setDifficulty(level);
+
+            // 4. Request move from GNU Go for the specified color
+            GtpResponse response = gtpClient.sendCommand("genmove " + colorToMove);
+            if (!response.isSuccess()) {
+                LOG.error("Failed to generate move suggestion: {}", response.getError());
+                return null;
+            }
+
+            // 5. Parse the response
+            String moveStr = response.getResult().trim();
+            LOG.info("GNU Go suggested move for {} at level {}: {}", colorToMove, level, moveStr);
+
+            // Check for pass
+            if ("pass".equalsIgnoreCase(moveStr) || "PASS".equalsIgnoreCase(moveStr)) {
+                return null; // null indicates a pass
+            }
+
+            // 6. Convert GTP coordinate to Position
+            return gtpToPosition(moveStr, boardSize);
+
+        } catch (Exception e) {
+            LOG.error("Error generating AI move suggestion at level {}", level, e);
+            return null;
+        }
+    }
+
+    /**
      * Checks if a given username is an AI bot.
      */
     public boolean isAiBot(String username) {

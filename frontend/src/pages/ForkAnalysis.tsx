@@ -43,6 +43,10 @@ const ForkAnalysis = () => {
   // Display options
   const [showMoveNumbers, setShowMoveNumbers] = useState<boolean>(true);
 
+  // AI move suggestion state
+  const [aiLevel, setAiLevel] = useState<number>(10); // Default to maximum strength
+  const [aiMoveLoading, setAiMoveLoading] = useState<boolean>(false);
+
   // Score calculation state
   const [scoreResult, setScoreResult] = useState<GameResult | null>(null);
   const [fixMode, setFixMode] = useState<boolean>(false);
@@ -95,6 +99,21 @@ const ForkAnalysis = () => {
 
     return turn;
   }, [game, baseMoveIndex, forkMoves, currentForkMoveIndex]);
+
+  // Calculate consecutive passes
+  const consecutivePasses = useMemo((): number => {
+    let passes = 0;
+    // Count backwards from current fork move index
+    for (let i = currentForkMoveIndex; i >= 0 && i < forkMoves.length; i--) {
+      const move = forkMoves[i];
+      if (move.position === null) {
+        passes++;
+      } else {
+        break; // Stop at first non-pass move
+      }
+    }
+    return passes;
+  }, [forkMoves, currentForkMoveIndex]);
 
   // Reconstruct the base board state
   const baseStones = useMemo((): StoneOnBoard[] => {
@@ -195,7 +214,7 @@ const ForkAnalysis = () => {
 
   // Handle placing a stone
   const handleIntersectionClick = useCallback((position: Position) => {
-    if (!game || fixMode) return;
+    if (!game || fixMode || consecutivePasses >= 2 || aiMoveLoading) return;
 
     setMoveError('');
 
@@ -225,11 +244,11 @@ const ForkAnalysis = () => {
       setScoreResult(null);
       setScoreError('');
     }
-  }, [game, fixMode, currentBoard, nextTurn, koBlockedHash, forkMoves, currentForkMoveIndex, scoreResult]);
+  }, [game, fixMode, consecutivePasses, aiMoveLoading, currentBoard, nextTurn, koBlockedHash, forkMoves, currentForkMoveIndex, scoreResult]);
 
   // Handle pass
   const handlePass = useCallback(() => {
-    if (!game || fixMode) return;
+    if (!game || fixMode || consecutivePasses >= 2 || aiMoveLoading) return;
 
     setMoveError('');
 
@@ -251,7 +270,72 @@ const ForkAnalysis = () => {
       setScoreResult(null);
       setScoreError('');
     }
-  }, [game, fixMode, nextTurn, currentBoard, forkMoves, currentForkMoveIndex, scoreResult]);
+  }, [game, fixMode, consecutivePasses, aiMoveLoading, nextTurn, currentBoard, forkMoves, currentForkMoveIndex, scoreResult]);
+
+  // Handle get AI move
+  const handleGetAiMove = useCallback(async () => {
+    if (!game || fixMode || aiMoveLoading || consecutivePasses >= 2) return;
+
+    setMoveError('');
+    setAiMoveLoading(true);
+
+    try {
+      // Build the combined moves (base + fork) to send to the AI
+      const combinedMoves = buildCombinedMoves();
+
+      // Request AI move suggestion
+      const response = await gameService.getAiMoveSuggestion(
+        game.boardSize,
+        combinedMoves,
+        game.komi,
+        aiLevel,
+        nextTurn
+      );
+
+      if (!response.success) {
+        setMoveError('Failed to get AI move suggestion');
+        return;
+      }
+
+      // Handle pass move
+      if (response.isPass || response.position === null) {
+        handlePass();
+        return;
+      }
+
+      // Validate and execute the AI's suggested move
+      const result = validateAndExecuteMove(currentBoard, response.position, nextTurn, koBlockedHash);
+
+      if (!result.success) {
+        setMoveError(result.error || 'AI suggested an invalid move');
+        return;
+      }
+
+      const newMove: ForkMove = {
+        position: response.position,
+        color: nextTurn,
+        capturedStones: result.capturedStones,
+        boardHashBefore: currentBoard.getBoardHash(),
+      };
+
+      // If we're not at the end of fork history, truncate future moves
+      const newForkMoves = forkMoves.slice(0, currentForkMoveIndex + 1);
+      newForkMoves.push(newMove);
+
+      setForkMoves(newForkMoves);
+      setCurrentForkMoveIndex(newForkMoves.length - 1);
+
+      // Reset score when making a new move
+      if (scoreResult) {
+        setScoreResult(null);
+        setScoreError('');
+      }
+    } catch (err: any) {
+      setMoveError(err.response?.data?.error || 'Failed to get AI move suggestion');
+    } finally {
+      setAiMoveLoading(false);
+    }
+  }, [game, fixMode, aiMoveLoading, consecutivePasses, aiLevel, nextTurn, currentBoard, koBlockedHash, forkMoves, currentForkMoveIndex, scoreResult, handlePass]);
 
   // Handle undo
   const handleUndo = useCallback(() => {
@@ -458,7 +542,7 @@ const ForkAnalysis = () => {
           <Board
             size={game.boardSize}
             stones={currentStones}
-            disabled={fixMode}
+            disabled={fixMode || consecutivePasses >= 2 || aiMoveLoading}
             onIntersectionClick={handleIntersectionClick}
             lastMove={lastMovePosition}
             showMoveNumbers={showMoveNumbers && !fixMode && !scoreResult}
@@ -589,6 +673,11 @@ const ForkAnalysis = () => {
             disabled={fixMode || calculatingScore}
             showMoveNumbers={showMoveNumbers}
             onShowMoveNumbersChange={setShowMoveNumbers}
+            aiLevel={aiLevel}
+            onAiLevelChange={setAiLevel}
+            onGetAiMove={handleGetAiMove}
+            aiMoveLoading={aiMoveLoading}
+            consecutivePasses={consecutivePasses}
           />
 
           {/* Fix Territory Mode */}

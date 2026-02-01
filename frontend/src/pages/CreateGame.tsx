@@ -16,6 +16,7 @@ const CreateGame = () => {
   const [boardSize, setBoardSize] = useState<9 | 13 | 19>(19);
   const [requestedColor, setRequestedColor] = useState<'black' | 'white' | 'random'>('random');
   const [komi, setKomi] = useState<number>(5.5);
+  const [allowUndo, setAllowUndo] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -74,6 +75,9 @@ const CreateGame = () => {
     setOpponentUsername('');
     setSearchQuery('');
     setShowDropdown(false);
+    if (type === 'human') {
+      setAllowUndo(false); // Reset undo option when switching to human
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,7 +96,8 @@ const CreateGame = () => {
         opponentUsername,
         boardSize,
         requestedColor,
-        komi
+        komi,
+        allowUndo
       });
 
       // Redirect to lobby - AI games go to active (auto-accepted), human games go to pending
@@ -258,6 +263,21 @@ const CreateGame = () => {
                 <option value={7.5}>7.5</option>
                 <option value={8.5}>8.5</option>
               </select>
+            </div>
+
+            <div className="input-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={allowUndo}
+                  onChange={(e) => setAllowUndo(e.target.checked)}
+                  disabled={loading || opponentType === 'human'}
+                  title={opponentType === 'human' ? 'Undo is only available in AI games' : 'Allow undoing moves during the game'}
+                />
+                <span className={opponentType === 'human' ? 'disabled-text' : ''}>
+                  Allow undo moves {opponentType === 'human' && '(AI games only)'}
+                </span>
+              </label>
             </div>
 
             {error && <div className="error">{error}</div>}

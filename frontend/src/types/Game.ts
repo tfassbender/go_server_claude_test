@@ -15,6 +15,7 @@ export interface Game {
   result?: GameResult;
   boardState?: BoardState;
   komi: number;
+  allowUndo?: boolean;
 }
 
 export interface GameResult {
