@@ -114,3 +114,33 @@ SSE endpoint at `/api/games/{gameId}/events` broadcasts move, pass, and gameEnd 
 - React hooks for local state
 - JWT stored in localStorage
 - Axios interceptor adds Authorization header
+
+## Skills
+
+### start-quarkus-server
+
+Located at `.claude/skills/start-quarkus-server/SKILL.md`.
+
+**Invoke with:** `/start-quarkus-server` or ask Claude to "start the quarkus server", "run quarkusDev", "start the backend", etc.
+
+**What it does:**
+1. Checks if a server is already running on port 4714
+2. Stops any existing server to free the port
+3. Starts quarkusDev in the background
+4. Waits for server startup (~30 seconds)
+5. Verifies the server is responding
+
+**Usage:** Claude can invoke this skill automatically when needed (e.g., when a Playwright testing skill requires the backend). You can also invoke it directly with `/start-quarkus-server`.
+
+### stop-quarkus-server
+
+Located at `.claude/skills/stop-quarkus-server/SKILL.md`.
+
+**Invoke with:** `/stop-quarkus-server` or ask Claude to "stop the quarkus server", "stop quarkusDev", "stop the backend", "shut down the server", etc.
+
+**What it does:**
+1. Checks if a server is running on port 4714
+2. Stops the server if found
+3. Verifies the port is now free
+
+**Usage:** Invoke directly with `/stop-quarkus-server` or ask Claude to stop the server.
